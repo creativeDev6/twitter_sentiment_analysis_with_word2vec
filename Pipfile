@@ -6,6 +6,14 @@ verify_ssl = true
 [dev-packages]
 
 [packages]
+autopep8 = "*"
+pandas = "*"
+matplotlib = "*"
+seaborn = "*"
+numpy = "*"
+gensim = "4.0.1"
+scikit-learn = "*"
+nltk = "*"
 
 [requires]
-python_version = "3.7"
+python_version = "3.8"

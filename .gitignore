@@ -141,3 +141,6 @@ cython_debug/
 
 # JetBrains
 .idea/
+
+# twitter sentiment analysis with word2vec project
+/models/
