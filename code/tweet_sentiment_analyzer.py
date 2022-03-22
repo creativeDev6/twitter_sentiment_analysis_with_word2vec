@@ -10,6 +10,7 @@ from pandas import DataFrame
 from sklearn.model_selection import StratifiedKFold
 
 from helper import show_used_time
+from code.data import ColumnNames
 from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
 from model import Method, load_or_create_model, load_pretrained_model, create_w2v_model, create_d2v_model, read_corpus
 from classification import Classifier
@@ -75,8 +76,9 @@ class TweetSentimentAnalyzer:
     fold_size = None
     """
 
-    def __init__(self, csv):
+    def __init__(self, csv, column_names: ColumnNames):
         self.csv = csv
+        self.column = column_names
         self.raw_data = None
         self.data = None
 
@@ -107,26 +109,31 @@ class TweetSentimentAnalyzer:
 
         Removed hashtags will be stored in the column "hashtags".
         """
+        # drop all other except essential columns (tweet and label)
+        df = df[[self.column.tweet, self.column.label]]
+
         # remove twitter handles (@user)
-        df.loc[:, "tidy_tweet"] = df["tweet"].apply(remove_pattern, args=(r"@\w*",))
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tweet].apply(remove_pattern, args=(r"@\w*",))
 
         # todo remove &amp; Unicode, e.g. 
-        df.loc[:, "tidy_tweet"] = df["tidy_tweet"].apply(remove_html_entities)
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(remove_html_entities)
 
         # remove special characters, numbers, punctuations (everything except letters and #)
         # todo what about ', like in don't, haven't?
-        df.loc[:, "tidy_tweet"] = df["tidy_tweet"].str.replace("[^a-zA-Z#]", " ")
-        # df.loc[:, "tidy_tweet"] = df["tidy_tweet"].apply(remove_unicode)
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].str.replace("[^a-zA-Z#]", " ")
+        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(remove_unicode)
 
         # extract hashtags into separate column
-        df.loc[:, "hashtags"] = df["tidy_tweet"].apply(hashtag_extract)
+        df.loc[:, self.column.hashtags] = df[self.column.tidy_tweet].apply(hashtag_extract)
 
-        # remove hashtags
-        # todo IMPORTANT recheck below comment after wrangling data (does it still worsen the result?)
-        # Info: the F1-score was worse than leaving them (0.38 to 0.48) when compared with all the training tweets. Also
-        # this lead to more rows having zero word tokens (94 to 4) and therefore removing them in the last step of this
-        # function (remove words with no word tokens)
-        df.loc[:, "tidy_tweet"] = df["tidy_tweet"].str.replace(r"#(\w+)", " ")
+        # remove hashtags todo IMPORTANT recheck below comment after wrangling data (does it still worsen the
+        #  result?) Info: the F1-score was worse than leaving them (0.38 to 0.48) when compared with all the training
+        #  tweets. Also this lead to more rows having zero word tokens (94 to 4) and therefore removing them in the
+        #  last step of this function (remove words with no word tokens) df.loc[:, self.column.tidy_tweet] = df[
+        #  self.column.tidy_tweet].str.replace(r"#(\w+)", " ")
+        #  remove only hashtags '#' (otherwise 833 rows will be removed and
+        #  hashtags might contain important words for deciding the tweet's sentiment)
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].str.replace("#", "")
 
         # todo use other gensim preprocessing functions
         # gensim.parsing.preprocessing.utils.keep_vocab_item()
@@ -136,14 +143,16 @@ class TweetSentimentAnalyzer:
                           gensim.parsing.preprocessing.strip_short,
                           gensim.parsing.preprocessing.remove_stopwords,
                           gensim.parsing.preprocessing.stem_text]
-        # df.loc[:, "tidy_tweet"] = df["tidy_tweet"].apply(gensim.parsing.preprocessing.preprocess_string, filters=gensim.parsing.preprocessing.DEFAULT_FILTERS)
-        df.loc[:, "tidy_tweet"] = df["tidy_tweet"].apply(lambda x: preprocess_string(x, filters=custom_filters))
+        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(
+        # gensim.parsing.preprocessing.preprocess_string, filters=gensim.parsing.preprocessing.DEFAULT_FILTERS)
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(
+            lambda x: preprocess_string(x, filters=custom_filters))
 
         # use gensim for preprocessing
         # simple preprocess without stemming
-        # df.loc[:, "tidy_tweet"] = df["tidy_tweet"].apply(gensim.utils.simple_preprocess)
+        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(gensim.utils.simple_preprocess)
         # preprocess with stemming
-        # df.loc[:, "tidy_tweet"] = df["tidy_tweet"].apply(preprocess_string)
+        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(preprocess_string)
 
         # display rows (tweets) with no words
         counter = 0
@@ -157,7 +166,7 @@ class TweetSentimentAnalyzer:
         # remove rows with no word tokens after preprocessing
         # Info: prevents having to calculate the document_vector for no words in tweet or rather to define a value for
         # empty tweets
-        df = df[df["tidy_tweet"].map(len) > 0]
+        df = df[df[self.column.tidy_tweet].map(len) > 0]
         df = df.reset_index(drop=True)
 
         self.data = df
@@ -166,12 +175,12 @@ class TweetSentimentAnalyzer:
 
     def split_train_test(self, test_size=0.2):
         from sklearn.model_selection import train_test_split
-        train_tweets, train_labels, test_tweets, test_labels = train_test_split(self, self.data["tweet"],
-                                                                                self.data["label"])
-        self.train = DataFrame(list(zip(train_tweets, train_labels)), columns=["tweet", "label"])
-        self.test = DataFrame(list(zip(test_tweets, test_labels)), columns=["tweet", "label"])
-        # self.train["tweet"], self.train["label"], self.test["tweet"], self.test["label"] = \
-        #     train_test_split(self.data["tweet"], self.data["label"])
+        train_tweets, train_labels, test_tweets, test_labels = train_test_split(self, self.data[self.column.tweet],
+                                                                                self.data[self.column.label])
+        self.train = DataFrame(list(zip(train_tweets, train_labels)), columns=[self.column.tweet, self.column.label])
+        self.test = DataFrame(list(zip(test_tweets, test_labels)), columns=[self.column.tweet, self.column.label])
+        # self.train[self.column.tweet], self.train[self.column.label], self.test[self.column.tweet], self.test[self.column.label] = \
+        #     train_test_split(self.data[self.column.tweet], self.data[self.column.label])
 
     def cross_validation(self, k_fold=5):
         # fixme shuffle=True not working (should work tested on 2021-09-22)
@@ -183,39 +192,43 @@ class TweetSentimentAnalyzer:
         fold = 0
         # todo divide data into 3 sections:
         #  training, validation (used for tweaking parameters) and test set (testing performance)?
-        for train_index, test_index in skf.split(self.data["tweet"], self.data["label"]):
+        for train_index, test_index in skf.split(self.data[self.column.tweet], self.data[self.column.label]):
             fold += 1
 
             print(f"Fold - {fold} -")
             print(f"TRAIN (len: {len(train_index)}: {train_index} TEST (len: {len(test_index)}: {test_index}")
-            print("tweet ", self.data["tweet"].iloc[train_index], self.data["tweet"].iloc[test_index])
-            print("tidy_tweet ", self.data["tidy_tweet"].iloc[train_index], self.data["tidy_tweet"].iloc[test_index])
-            print("hashtags ", self.data["hashtags"].iloc[train_index], self.data["hashtags"].iloc[test_index])
-            print("labels ", self.data["label"].iloc[train_index], self.data["label"].iloc[test_index])
+            print("tweet ", self.data[self.column.tweet].iloc[train_index],
+                  self.data[self.column.tweet].iloc[test_index])
+            print("tidy_tweet ", self.data[self.column.tidy_tweet].iloc[train_index],
+                  self.data[self.column.tidy_tweet].iloc[test_index])
+            print("hashtags ", self.data[self.column.hashtags].iloc[train_index],
+                  self.data[self.column.hashtags].iloc[test_index])
+            print("labels ", self.data[self.column.label].iloc[train_index],
+                  self.data[self.column.label].iloc[test_index])
 
-            train_tweets, test_tweets = self.data["tweet"].iloc[train_index], \
-                                        self.data["tweet"].iloc[test_index]
-            train_tidy_tweets, test_tidy_tweets = self.data["tidy_tweet"].iloc[train_index], \
-                                                  self.data["tidy_tweet"].iloc[test_index]
-            train_hashtags, test_hashtags = self.data["hashtags"].iloc[train_index], \
-                                            self.data["hashtags"].iloc[test_index]
-            train_labels, test_labels = self.data["label"].iloc[train_index], \
-                                        self.data["label"].iloc[test_index]
-            train_ids, test_ids = self.data["id"].iloc[train_index], \
-                                  self.data["id"].iloc[test_index]
+            train_tweets, test_tweets = self.data[self.column.tweet].iloc[train_index], \
+                                        self.data[self.column.tweet].iloc[test_index]
+            train_tidy_tweets, test_tidy_tweets = self.data[self.column.tidy_tweet].iloc[train_index], \
+                                                  self.data[self.column.tidy_tweet].iloc[test_index]
+            train_hashtags, test_hashtags = self.data[self.column.hashtags].iloc[train_index], \
+                                            self.data[self.column.hashtags].iloc[test_index]
+            train_labels, test_labels = self.data[self.column.label].iloc[train_index], \
+                                        self.data[self.column.label].iloc[test_index]
             print(f"Current TRAIN (len: {len(train_tweets)}) TEST (len: {len(test_tweets)})")
 
         # save stratified data as DataFrame
-        self.train = DataFrame(list(zip(train_ids, train_labels, train_tweets, train_tidy_tweets, train_hashtags)),
-                               columns=["id", "label", "tweet", "tidy_tweet", "hashtags"])
-        self.test = DataFrame(list(zip(test_ids, test_labels, test_tweets, test_tidy_tweets, test_hashtags)),
-                              columns=["id", "label", "tweet", "tidy_tweet", "hashtags"])
+        self.train = DataFrame(list(zip(train_labels, train_tweets, train_tidy_tweets, train_hashtags)),
+                               columns=[self.column.label, self.column.tweet, self.column.tidy_tweet,
+                                        self.column.hashtags])
+        self.test = DataFrame(list(zip(test_labels, test_tweets, test_tidy_tweets, test_hashtags)),
+                              columns=[self.column.label, self.column.tweet, self.column.tidy_tweet,
+                                       self.column.hashtags])
 
         self.fold_size = len(self.test)
 
     def __visualize_data(self, data: DataFrame, title_prefix: str):
-        pos_words = data["tidy_tweet"][data["label"] == 0]
-        neg_words = data["tidy_tweet"][data["label"] == 1]
+        pos_words = data[self.column.tidy_tweet][data[self.column.label] == 0]
+        neg_words = data[self.column.tidy_tweet][data[self.column.label] == 1]
 
         print(neg_words.head(15))
         print(pos_words.head(15))
@@ -238,8 +251,8 @@ class TweetSentimentAnalyzer:
                            total_count=len(neg_words),
                            y_suffix="(Percentage Per Total Words)")
 
-        pos_tweets = data["tidy_tweet"][data["label"] == 0]
-        neg_tweets = data["tidy_tweet"][data["label"] == 1]
+        pos_tweets = data[self.column.tidy_tweet][data[self.column.label] == 0]
+        neg_tweets = data[self.column.tidy_tweet][data[self.column.label] == 1]
 
         word_freq_bar_plot(pos_words, title_prefix=title_prefix, title="Positive Labeled Tweets", num_words_to_plot=20,
                            total_count=len(pos_tweets), y_suffix="(Percentage Per Tweet)")
@@ -258,10 +271,11 @@ class TweetSentimentAnalyzer:
         if pretrained_model is None:
             print(f"New model: will be trained.")
             # todo remove force_retrain
-            self.model = load_or_create_model(self.method, self.train["tidy_tweet"], tweet_count, force_retrain=True)
+            self.model = load_or_create_model(self.method, self.train[self.column.tidy_tweet], tweet_count,
+                                              force_retrain=True)
             # todo remove
             print(f"****** len(train): {len(self.train)}")
-            print(f"****** vocabulary: {self.model.wv.index_to_key}")
+            # print(f"****** vocabulary: {self.model.wv.index_to_key}")
         else:
             print(f"Pretrained model: '{pretrained_model}' will be used.")
             # self.model = pretrained_model
@@ -282,7 +296,7 @@ class TweetSentimentAnalyzer:
 
         self.classifier = Classifier(self.method, self.model, vector_size,
                                      self.train.iloc[:tweet_count],
-                                     self.test)
+                                     self.test, self.column)
         self.classifier.train_classifier()
 
     def test_classifier(self):

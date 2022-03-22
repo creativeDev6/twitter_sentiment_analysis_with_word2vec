@@ -1,5 +1,5 @@
 import os
-from tweet_sentiment_analyzer import TweetSentimentAnalyzer
+from tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
 
 cwd = os.getcwd()
 data_path = f"{cwd}/data"
@@ -9,7 +9,8 @@ print(f"Current Working Directory: {cwd}")
 
 
 def run():
-    tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv")
+    tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames())
+    print(f"column headers: {tsa.data.columns.values}")
 
     # todo remove later
     # fixme why clean/train.csv same amount of data as train_E6oV3lV.csv?

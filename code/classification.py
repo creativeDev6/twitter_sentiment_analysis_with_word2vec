@@ -8,26 +8,29 @@ from pandas import DataFrame
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, precision_score, recall_score
 
+from code.data import ColumnNames
 from model import Method
 
 
-def create_tagged_docs(train, test):
+def create_tagged_docs(train, test, column: ColumnNames):
     # todo the doc2vec models were trained with unique integers as tags, now by labels does it matter?
     train_tagged = train.apply(
-        lambda r: TaggedDocument(words=r.tidy_tweet, tags=[r.label]), axis=1)
+        lambda r: TaggedDocument(words=r[column.tidy_tweet], tags=[r[column.label]]), axis=1)
     test_tagged = test.apply(
-        lambda r: TaggedDocument(words=r.tidy_tweet, tags=[r.label]), axis=1)
+        lambda r: TaggedDocument(words=r[column.tidy_tweet], tags=[r[column.label]]), axis=1)
 
     return train_tagged, test_tagged
 
 
 class Classifier:
-    def __init__(self, method: Method, model: Word2Vec, vector_size: int, train: DataFrame, test: DataFrame):
+    def __init__(self, method: Method, model: Word2Vec, vector_size: int,
+                 train: DataFrame, test: DataFrame, column_names: ColumnNames = ColumnNames()):
         self.method = method
         self.model = model
         self.vector_size = vector_size
         self.train = train
         self.test = test
+        self.column = column_names
 
         print("-" * 30)
         print(f"model: Type: {type(self.model)}, len: {len(self.model.wv)}")
@@ -94,20 +97,20 @@ class Classifier:
         # https://stackoverflow.com/questions/52670012/convergencewarning-liblinear-failed-to-converge-increase-the-number-of-iterati
         # For small datasets, ‘liblinear’ is a good choice, whereas ‘sag’ and ‘saga’ are faster for large ones.
 
-        self.vectors = [self.mean_doc_vector(doc) for doc in self.train["tidy_tweet"]]
+        self.vectors = [self.mean_doc_vector(doc) for doc in self.train[self.column.tidy_tweet]]
         log_reg = LogisticRegression(solver='liblinear', max_iter=1000)
-        # logreg.fit(train_clean["tidy_tweet"], train_clean["label"])
-        print(f"train_classifier -> len(vectors): {len(self.vectors)}, len(labels): {len(self.train['label'])}")
+        # logreg.fit(train_clean[self.column.tidy_tweet], train_clean[self.column.label])
+        print(f"train_classifier -> len(vectors): {len(self.vectors)}, len(labels): {len(self.train[self.column.label])}")
         print(f"shape: {self.vectors[0].shape}")
-        log_reg = log_reg.fit(self.vectors, self.train["label"])
+        log_reg = log_reg.fit(self.vectors, self.train[self.column.label])
 
         self.classifier = log_reg
         return log_reg
 
     def get_prediction_int(self, train, test, is_pretrained=False):
         if self.method == Method.WORD2VEC:
-            train_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in train["tidy_tweet"]]
-            test_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in test["tidy_tweet"]]
+            train_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in train[self.column.tidy_tweet]]
+            test_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in test[self.column.tidy_tweet]]
 
             log_reg = self.train_classifier()
             log_reg = self.classifier
@@ -131,9 +134,9 @@ class Classifier:
             # train_tagged = train[:limit].apply(
             # todo the doc2vec models were trained with unique integers as tags, now by labels does it matter?
             train_tagged = train.apply(
-                lambda r: TaggedDocument(words=r.tidy_tweet, tags=[r.label]), axis=1)
+                lambda r: TaggedDocument(words=r[self.column.tidy_tweet], tags=[r[self.column.label]]), axis=1)
             test_tagged = test.apply(
-                lambda r: TaggedDocument(words=r.tidy_tweet, tags=[r.label]), axis=1)
+                lambda r: TaggedDocument(words=r[self.column.tidy_tweet], tags=[r[self.column.label]]), axis=1)
 
             labels_train, train_doc_vectors = self.vec_for_learning(self.model, train_tagged)
             labels_test, test_doc_vectors = self.vec_for_learning(self.model, test_tagged)
@@ -195,7 +198,7 @@ class Classifier:
             w2v = {w: vec for w, vec in zip(self.model.wv.index_to_key, self.model.wv.vectors)}
         mv = MeanEmbeddingVectorizer(w2v)
         mv = TfidfEmbeddingVectorizer(w2v)
-        mv.fit(train["tidy_tweet"], train["label"])
+        mv.fit(train[self.column.tidy_tweet], train[self.column.label])
         """
 
         # for grouping data (hue)
@@ -220,7 +223,7 @@ class Classifier:
             # f1 = f1_score(test_labels, prediction_int, average=average, pos_label=pos_label)
             # precision = precision_score(test_labels, prediction_int, average=average, pos_label=pos_label)
             # recall = recall_score(test_labels, prediction_int, average=average, pos_label=pos_label)
-            f1, precision, recall = scores(test["label"], prediction_int, average, pos_label)
+            f1, precision, recall = scores(test[self.column.label], prediction_int, average, pos_label)
             # result.append(zip(average, pos_label, f1, precision, recall))
             result.append(score_data(tweet_count=tweet_count, label=average_label, f1=f1, precision=precision,
                                      recall=recall))
