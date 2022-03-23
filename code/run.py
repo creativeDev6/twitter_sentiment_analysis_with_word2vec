@@ -18,16 +18,15 @@ def run():
     tsa.data.to_csv(f"{data_path}/clean/train.csv")
 
     # todo move to loop and use how it is meant to be used
-    tsa.cross_validation(k_fold=5)
-    # fixme
-    # tsa.split_train_test()
+    # tsa.cross_validation(k_fold=5)
     # tsa.fold_size = len(tsa.train) / 5
-    print(f"tsa.fold_size: {tsa.fold_size}")
+    # print(f"tsa.fold_size: {tsa.fold_size}")
+    tsa.split_train_test(test_size=0.2)
 
     # tsa.visualize_train_data()
     # tsa.visualize_test_data()
 
-    tweet_counts = [tsa.fold_size * x for x in range(1, 6)]
+    # tweet_counts = [tsa.fold_size * x for x in range(1, 6)]
     # todo remove later
     # tweet_counts = [tsa.fold_size]
     tweet_counts = [100, 1_000, 10_000, 20_000, len(tsa.train)]

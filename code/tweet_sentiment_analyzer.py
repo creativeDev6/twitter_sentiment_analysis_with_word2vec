@@ -7,7 +7,7 @@ import pandas
 from gensim.models.doc2vec import TaggedDocument, Word2Vec
 from gensim.parsing import preprocess_string
 from pandas import DataFrame
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from helper import show_used_time
 from code.data import ColumnNames
@@ -174,13 +174,7 @@ class TweetSentimentAnalyzer:
         return df
 
     def split_train_test(self, test_size=0.2):
-        from sklearn.model_selection import train_test_split
-        train_tweets, train_labels, test_tweets, test_labels = train_test_split(self, self.data[self.column.tweet],
-                                                                                self.data[self.column.label])
-        self.train = DataFrame(list(zip(train_tweets, train_labels)), columns=[self.column.tweet, self.column.label])
-        self.test = DataFrame(list(zip(test_tweets, test_labels)), columns=[self.column.tweet, self.column.label])
-        # self.train[self.column.tweet], self.train[self.column.label], self.test[self.column.tweet], self.test[self.column.label] = \
-        #     train_test_split(self.data[self.column.tweet], self.data[self.column.label])
+        self.train, self.test = train_test_split(self.data, test_size=test_size)
 
     def cross_validation(self, k_fold=5):
         # fixme shuffle=True not working (should work tested on 2021-09-22)
