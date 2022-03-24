@@ -10,7 +10,7 @@ from pandas import DataFrame
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from helper import show_used_time
-from code.data import ColumnNames, oversample
+from code.data import ColumnNames, oversample, distribute_equally
 from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
 from model import Method, load_or_create_model, load_pretrained_model, create_w2v_model, create_d2v_model, read_corpus
 from classification import Classifier
@@ -56,8 +56,6 @@ epochs = 30  # 30
 
 # always show all columns and rows on a panda's DataFrame
 pandas.options.display.max_columns = None
-
-
 # pandas.options.display.max_rows = None
 
 
@@ -174,7 +172,7 @@ class TweetSentimentAnalyzer:
         return df
 
     def split_train_test(self, test_size=0.2):
-        self.train, self.test = train_test_split(self.data, test_size=test_size)
+        self.train, self.test = train_test_split(self.data, test_size=test_size, stratify=self.data[self.column.label])
 
     def cross_validation(self, k_fold=5):
         # fixme shuffle=True not working (should work tested on 2021-09-22)
@@ -222,6 +220,28 @@ class TweetSentimentAnalyzer:
 
     def oversample(self, ratio=1):
         self.train = oversample(self.train, ratio=ratio)
+
+    def distribute_labels_equally_in_train(self):
+        self.train = distribute_equally(self.train, self.column.label)
+
+    def __show_class_distribution(self, df: DataFrame, tweet_counts, title_prefix=""):
+        from collections import Counter
+        print("*" * 30)
+        print(f"{title_prefix} Class distribution")
+        print("*" * 30)
+        for tweet_count in tweet_counts:
+            dist = Counter(df.iloc[:tweet_count][self.column.label])
+            ratio = dist[0] // dist[1]
+            print(f"tweet_count: {tweet_count}")
+            print(f"Distribution: {Counter(df.iloc[:tweet_count][self.column.label])}")
+            print(f"Ratio: 1:{ratio}")
+            print("-" * 30)
+
+    def show_train_class_distribution(self, tweet_counts: [int]):
+        self.__show_class_distribution(self.train, tweet_counts, title_prefix="Train")
+
+    def show_test_class_distribution(self):
+        self.__show_class_distribution(self.test, tweet_counts=[len(self.test)], title_prefix="Test")
 
     def __visualize_data(self, data: DataFrame, title_prefix: str):
         pos_words = data[self.column.tidy_tweet][data[self.column.label] == 0]

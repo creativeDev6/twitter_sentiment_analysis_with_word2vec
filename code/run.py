@@ -35,8 +35,23 @@ def run():
     tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, 40_000, len(tsa.train)]
     specific_scores = []
     # for tweet_count in [100, 1_000, 10_000, 20_000, len(tsa.train)]:
+
+    # Test run label distribution
+    print("*" * 50)
+    print("Before distribute_labels_equally_in_train()")
+    print("*" * 50)
+    tsa.show_train_class_distribution(tweet_counts)
+    tsa.show_test_class_distribution()
+
+    tsa.distribute_labels_equally_in_train()
+
+    print("*" * 50)
+    print("After distribute_labels_equally_in_train()")
+    print("*" * 50)
+    tsa.show_train_class_distribution(tweet_counts)
+    tsa.show_test_class_distribution()
+
     # specific model
-    # todo how to select incrementally more tweets (100, 1000, 10000, ...)?
     for tweet_count in tweet_counts:
         tsa.train_model(tweet_count=tweet_count)
         tsa.train_classifier(tweet_count=tweet_count)

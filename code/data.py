@@ -15,9 +15,11 @@ class ColumnNames:
         self.hashtags = hashtags
 
 
+column = ColumnNames()
+
+
 # todo test different ratios
 def oversample(df: DataFrame, ratio=1):
-    column = ColumnNames()
     print(f"Before oversampling: {Counter(df[column.label])}")
     # todo try different oversampling methods (e.g. SMOTE)
     oversample_method = RandomOverSampler(sampling_strategy=ratio)
@@ -25,3 +27,8 @@ def oversample(df: DataFrame, ratio=1):
     data_oversampled, labels_oversampled = oversample_method.fit_resample(df, labels)
     print(f"After oversampling: {Counter(labels_oversampled)}")
     return data_oversampled
+
+
+def distribute_equally(df: DataFrame, target_column: str):
+    # source https://stackoverflow.com/a/69079436
+    return df.assign(rank=df.groupby(target_column).cumcount()).sort_values('rank').drop(columns='rank')
