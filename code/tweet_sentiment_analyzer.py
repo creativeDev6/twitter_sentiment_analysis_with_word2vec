@@ -10,7 +10,7 @@ from pandas import DataFrame
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from helper import show_used_time
-from code.data import ColumnNames
+from code.data import ColumnNames, oversample
 from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
 from model import Method, load_or_create_model, load_pretrained_model, create_w2v_model, create_d2v_model, read_corpus
 from classification import Classifier
@@ -219,6 +219,9 @@ class TweetSentimentAnalyzer:
                                        self.column.hashtags])
 
         self.fold_size = len(self.test)
+
+    def oversample(self, ratio=1):
+        self.train = oversample(self.train, ratio=ratio)
 
     def __visualize_data(self, data: DataFrame, title_prefix: str):
         pos_words = data[self.column.tidy_tweet][data[self.column.label] == 0]

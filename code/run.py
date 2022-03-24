@@ -11,6 +11,8 @@ print(f"Current Working Directory: {cwd}")
 def run():
     tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames())
     print(f"column headers: {tsa.data.columns.values}")
+    print(f'# positive tweets: {len(tsa.raw_data[tsa.raw_data[tsa.column.label] == 0].index)}')
+    print(f'# negative tweets: {len(tsa.raw_data[tsa.raw_data[tsa.column.label] == 1].index)}')
 
     # todo remove later
     # fixme why clean/train.csv same amount of data as train_E6oV3lV.csv?
@@ -26,10 +28,11 @@ def run():
     # tsa.visualize_train_data()
     # tsa.visualize_test_data()
 
+    tsa.oversample(ratio=1)
     # tweet_counts = [tsa.fold_size * x for x in range(1, 6)]
     # todo remove later
     # tweet_counts = [tsa.fold_size]
-    tweet_counts = [100, 1_000, 10_000, 20_000, len(tsa.train)]
+    tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, 40_000, len(tsa.train)]
     specific_scores = []
     # for tweet_count in [100, 1_000, 10_000, 20_000, len(tsa.train)]:
     # specific model
