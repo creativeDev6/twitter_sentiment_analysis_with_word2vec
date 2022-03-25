@@ -231,10 +231,10 @@ class TweetSentimentAnalyzer:
         print("*" * 30)
         for tweet_count in tweet_counts:
             dist = Counter(df.iloc[:tweet_count][self.column.label])
-            ratio = dist[0] // dist[1]
+            ratio = dist[0] / dist[1]
             print(f"tweet_count: {tweet_count}")
             print(f"Distribution: {Counter(df.iloc[:tweet_count][self.column.label])}")
-            print(f"Ratio: 1:{ratio}")
+            print(f"Ratio: 1 : {ratio:.2f}")
             print("-" * 30)
 
     def show_train_class_distribution(self, tweet_counts: [int]):
