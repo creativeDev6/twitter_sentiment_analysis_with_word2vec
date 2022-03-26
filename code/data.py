@@ -29,6 +29,16 @@ def oversample(df: DataFrame, ratio=1):
     return data_oversampled
 
 
+def get_duplicates(df: DataFrame, subset: [str] = None):
+    if subset is None:
+        return df[df.duplicated()]
+    return df[df.duplicated(subset=subset)]
+
+
+def count_duplicates(df: DataFrame, subset: [str] = None):
+    return len(get_duplicates(df, subset).index)
+
+
 def distribute_equally(df: DataFrame, target_column: str):
     # source https://stackoverflow.com/a/69079436
     return df.assign(rank=df.groupby(target_column).cumcount()).sort_values('rank').drop(columns='rank')
