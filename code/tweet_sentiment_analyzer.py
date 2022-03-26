@@ -77,6 +77,7 @@ class TweetSentimentAnalyzer:
     def __init__(self, csv, column_names: ColumnNames):
         self.csv = csv
         self.column = column_names
+        self.essential_columns = [self.column.tweet, self.column.label]
         self.raw_data = None
         self.data = None
 
@@ -108,7 +109,7 @@ class TweetSentimentAnalyzer:
         Removed hashtags will be stored in the column "hashtags".
         """
         # drop all other except essential columns (tweet and label)
-        df = df[[self.column.tweet, self.column.label]]
+        df = df[self.essential_columns]
 
         # remove twitter handles (@user)
         df.loc[:, self.column.tidy_tweet] = df[self.column.tweet].apply(remove_pattern, args=(r"@\w*",))
