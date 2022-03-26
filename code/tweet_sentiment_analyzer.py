@@ -10,7 +10,7 @@ from pandas import DataFrame
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
 from helper import show_used_time
-from code.data import ColumnNames, oversample, distribute_equally
+from code.data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
 from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
 from model import Method, load_or_create_model, load_pretrained_model, create_w2v_model, create_d2v_model, read_corpus
 from classification import Classifier
@@ -102,12 +102,31 @@ class TweetSentimentAnalyzer:
         print(f"len(self.data): {len(self.data)}")
         print("*" * 30)
 
+    def __remove_duplicates(self, df: DataFrame):
+        """
+        Removes all duplicates in place except the first occurrence.
+        :param df:
+        :return:
+        """
+        duplicates = get_duplicates(df)
+        duplicates_count = len(duplicates.index)
+        print("*" * 30)
+        print("Duplicates, following rows will be removed:")
+        print("*" * 30)
+        for row in duplicates.itertuples():
+            print(f"Duplicate: {row}")
+        print(f"Removed rows: {duplicates_count}")
+
+        df.drop_duplicates(subset=self.essential_columns, inplace=True)
+
     def preprocess(self, df: DataFrame):
         """
         The preprocessed tweet will be stored in the column "tidy_tweet".
 
         Removed hashtags will be stored in the column "hashtags".
         """
+        self.__remove_duplicates(df)
+
         # drop all other except essential columns (tweet and label)
         df = df[self.essential_columns]
 
