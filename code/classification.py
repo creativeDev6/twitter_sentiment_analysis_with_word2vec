@@ -121,9 +121,8 @@ class Classifier:
             print("|" * 30)
             # non-thresholded decision values
             # prediction = logreg.decision_function(test_vectors)
-            # todo why 0.3? because there are more positive labeled tweets? (0.3 also gets the best result)
-            # if prediction is greater than or equal to 0.3 than 1 else 0
-            prediction_int = prediction[:, 1] >= 0.3
+            # if prediction is greater than or equal to 0.5 than 1 else 0
+            prediction_int = prediction[:, 1] >= 0.5
             prediction_int = prediction_int.astype(np.int)
             print("|" * 30)
             print("len, type, prediction_int", len(prediction_int), type(prediction_int), prediction_int)
