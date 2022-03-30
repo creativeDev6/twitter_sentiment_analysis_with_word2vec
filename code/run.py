@@ -1,5 +1,7 @@
 import os
 from tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
+from time import time
+from helper import show_used_time
 
 cwd = os.getcwd()
 data_path = f"{cwd}/data"
@@ -15,7 +17,6 @@ def run():
     print(f'# negative tweets: {len(tsa.raw_data[tsa.raw_data[tsa.column.label] == 1].index)}')
 
     # todo remove later
-    # fixme why clean/train.csv same amount of data as train_E6oV3lV.csv?
     # for checking if data was wrangled
     tsa.data.to_csv(f"{data_path}/clean/train.csv")
 
@@ -23,16 +24,17 @@ def run():
     # tsa.cross_validation(k_fold=5)
     # tsa.fold_size = len(tsa.train) / 5
     # print(f"tsa.fold_size: {tsa.fold_size}")
-    tsa.split_train_test(test_size=0.2)
+    tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7, shuffle=True, random_state=1)
 
     # tsa.visualize_train_data()
-    # tsa.visualize_test_data()
+    # tsa.visualize_validation_data()
+    ## tsa.visualize_test_data()
 
     tsa.oversample(ratio=1)
     # tweet_counts = [tsa.fold_size * x for x in range(1, 6)]
     # todo remove later
     # tweet_counts = [tsa.fold_size]
-    tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, 40_000, len(tsa.train)]
+    tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, len(tsa.train)]
     specific_scores = []
     # for tweet_count in [100, 1_000, 10_000, 20_000, len(tsa.train)]:
 
@@ -41,6 +43,7 @@ def run():
     print("Before distribute_labels_equally_in_train()")
     print("*" * 50)
     tsa.show_train_class_distribution(tweet_counts)
+    tsa.show_validation_class_distribution()
     tsa.show_test_class_distribution()
 
     tsa.distribute_labels_equally_in_train()
@@ -56,10 +59,12 @@ def run():
         tsa.train_model(tweet_count=tweet_count)
         tsa.train_classifier(tweet_count=tweet_count)
         specific_scores.extend(
-            tsa.test_classifier())
+            tsa.validate_classifier())
 
-    # fixme not showing with different tweet_counts (fold_size is used)
-    tsa.visualize_score(specific_scores, "W2V Specific Model")
+    # todo save best performing model chosen by validation
+    # todo add final tsa.test_classifier at the end
+
+    tsa.visualize_score(specific_scores, "Validation: W2V Specific Model")
 
     """
     # unspecifc (pretrained) model
@@ -82,4 +87,6 @@ def run():
 
 
 if __name__ == '__main__':
+    t = time()
     run()
+    show_used_time(t, "run()")

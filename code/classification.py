@@ -24,11 +24,12 @@ def create_tagged_docs(train, test, column: ColumnNames):
 
 class Classifier:
     def __init__(self, method: Method, model: Word2Vec, vector_size: int,
-                 train: DataFrame, test: DataFrame, column_names: ColumnNames = ColumnNames()):
+                 train: DataFrame, validation: DataFrame, test: DataFrame, column_names: ColumnNames = ColumnNames()):
         self.method = method
         self.model = model
         self.vector_size = vector_size
         self.train = train
+        self.validation = validation
         self.test = test
         self.column = column_names
 
@@ -107,7 +108,7 @@ class Classifier:
         self.classifier = log_reg
         return log_reg
 
-    def get_prediction_int(self, train, test, is_pretrained=False):
+    def get_prediction_int(self, train: DataFrame, test: DataFrame, is_pretrained=False):
         if self.method == Method.WORD2VEC:
             train_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in train[self.column.tidy_tweet]]
             test_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in test[self.column.tidy_tweet]]
@@ -157,20 +158,29 @@ class Classifier:
 
         return prediction_int
 
-    def test_classifier(self):
+    def __test_classifier(self, df_test: DataFrame):
+        print(f"type(df_test): {type(df_test)}")
         def print_score_data(data):
             print("-" * 100)
             print(f"Tweet count: {len(self.train)} ({self.train.iloc[0].index} - {self.train.iloc[-1].index})")
             print("-" * 100)
             for score in data:
-                print(f"Label: {score.label} F1-Score: {score.f1} (Precision: {score.precision}, Recall {score.recall})")
+                print(
+                    f"Label: {score.label} F1-Score: {score.f1} (Precision: {score.precision}, Recall {score.recall})")
             print("-" * 100)
 
-        score_data = self.evaluate_score_data(self.train, self.test)
+        score_data = self.evaluate_score_data(self.train, df_test)
         print_score_data(score_data)
 
         return score_data
 
+    def validate_classifier(self):
+        return self.__test_classifier(self.validation)
+
+    def test_classifier(self):
+        return self.__test_classifier(self.test)
+
+    # todo remove parameter train + also in self.get_prediction_int()?
     def evaluate_score_data(self, train: DataFrame, test: DataFrame, is_pretrained=False):
         def scores(test_labels_param, prediction_int_param, average_param, pos_label_param):
             # prevent warning: ignoring pos_label when average != "binary"

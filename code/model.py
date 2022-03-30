@@ -16,8 +16,6 @@ from helper import show_used_time
 # region variables
 
 cwd = os.getcwd()
-# make sure you get this repository as your cwd
-print(f"Current Working Directory: {cwd}")
 
 # data
 data_path = f"{cwd}/data"

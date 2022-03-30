@@ -19,8 +19,6 @@ from visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart
 # region variables
 
 cwd = os.getcwd()
-# make sure you get this repository as your cwd
-print(f"Current Working Directory: {cwd}")
 
 # data
 data_path = f"{cwd}/data"
@@ -55,8 +53,8 @@ epochs = 30  # 30
 # endregion
 
 # always show all columns and rows on a panda's DataFrame
-pandas.options.display.max_columns = None
 # pandas.options.display.max_rows = None
+pandas.options.display.max_columns = None
 
 
 class TweetSentimentAnalyzer:
@@ -82,6 +80,7 @@ class TweetSentimentAnalyzer:
         self.data = None
 
         self.train = None
+        self.validation = None
         self.test = None
 
         self.method: Method = Method.WORD2VEC
@@ -191,8 +190,24 @@ class TweetSentimentAnalyzer:
 
         return df
 
-    def split_train_test(self, test_size=0.2):
-        self.train, self.test = train_test_split(self.data, test_size=test_size, stratify=self.data[self.column.label])
+    def train_validation_test_split(self, test_size=0.1, validation_size=0.2, train_size=0.7, shuffle: bool = True,
+                                    random_state: int = None):
+        # needs round otherwise raises error, e.g. with default size values sum -> 0.999
+        sum_sizes = round(train_size + validation_size + test_size, 2)
+        if sum_sizes != 1.0:
+            raise ValueError(
+                f"Sizes: {train_size} (train), {validation_size} (validation) and {test_size} (test) should add up to "
+                f"1.0")
+
+        # train_size = 1 - (validation_size + test_size)
+        relative_test_size = test_size / (validation_size + test_size)
+
+        self.train, temp_validation = train_test_split(self.data, train_size=train_size, shuffle=shuffle,
+                                                       random_state=random_state,
+                                                       stratify=self.data[self.column.label])
+        self.validation, self.test = train_test_split(temp_validation, test_size=relative_test_size, shuffle=shuffle,
+                                                      random_state=random_state,
+                                                      stratify=temp_validation[self.column.label])
 
     def cross_validation(self, k_fold=5):
         # fixme shuffle=True not working (should work tested on 2021-09-22)
@@ -260,6 +275,9 @@ class TweetSentimentAnalyzer:
     def show_train_class_distribution(self, tweet_counts: [int]):
         self.__show_class_distribution(self.train, tweet_counts, title_prefix="Train")
 
+    def show_validation_class_distribution(self):
+        self.__show_class_distribution(self.validation, tweet_counts=[len(self.validation)], title_prefix="Validation")
+
     def show_test_class_distribution(self):
         self.__show_class_distribution(self.test, tweet_counts=[len(self.test)], title_prefix="Test")
 
@@ -299,6 +317,9 @@ class TweetSentimentAnalyzer:
     def visualize_train_data(self):
         self.__visualize_data(self.train, "Train")
 
+    def visualize_validation_data(self):
+        self.__visualize_data(self.validation, "Validation")
+
     def visualize_test_data(self):
         self.__visualize_data(self.test, "Test")
 
@@ -333,8 +354,13 @@ class TweetSentimentAnalyzer:
 
         self.classifier = Classifier(self.method, self.model, vector_size,
                                      self.train.iloc[:tweet_count],
-                                     self.test, self.column)
+                                     self.validation,
+                                     self.test,
+                                     self.column)
         self.classifier.train_classifier()
+
+    def validate_classifier(self):
+        return self.classifier.validate_classifier()
 
     def test_classifier(self):
         return self.classifier.test_classifier()
@@ -343,26 +369,3 @@ class TweetSentimentAnalyzer:
         # score_data = namedtuple("scoreData", "tweet_count label f1 precision recall")
         scores_data = DataFrame(data=scores)
         grouped_bar_chart(scores_data, title="Score Depending on Tweet Count", title_prefix=title_prefix)
-
-
-"""
-# TSA -> TweetSentimentAnalyzer
-tsa = TSA(csv)
-# tsa.readData(csv)
-tsa.preprocess()
-tsa.create_training_test(test_size) / tsa.cross_validation(k_fold)
-
-tsa.visualize_train_data() / tsa.visualize_data(tsa.train)
-tsa.visualize_test_data() / tsa.visualize_data(tsa.test)
-
-scores = []
-for tweet_count in [100, 1000, 10000, 20000, len(train)]:
-    tsa.train_specific_model(tweet_count=len(self.train))
-
-    tsa.train_classifier()
-
-    # evaluation (print F1-Score and result dataframe?)
-    scores.append(tsa.test_classifier())
-
-tsa.visualize_score(scores)
-"""
