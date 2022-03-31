@@ -22,6 +22,7 @@ cwd = os.getcwd()
 
 # data
 data_path = f"{cwd}/data"
+cleaned_data_path = f"{cwd}/data/cleaned"
 
 # models
 models_path = f"{cwd}/models"
@@ -75,7 +76,7 @@ class TweetSentimentAnalyzer:
     def __init__(self, csv, column_names: ColumnNames):
         self.csv = csv
         self.column = column_names
-        self.essential_columns = [self.column.tweet, self.column.label]
+        self.essential_columns = [self.column.id, self.column.label, self.column.tweet]
         self.raw_data = None
         self.data = None
 
@@ -94,11 +95,9 @@ class TweetSentimentAnalyzer:
 
     def __read_data(self, csv):
         self.raw_data = pandas.read_csv(csv)
-        self.preprocess(self.raw_data)
         # todo remove
         print("*" * 30)
         print(f"len(self.raw_data): {len(self.raw_data)}")
-        print(f"len(self.data): {len(self.data)}")
         print("*" * 30)
 
     def __remove_duplicates(self, df: DataFrame):
@@ -118,11 +117,11 @@ class TweetSentimentAnalyzer:
 
         df.drop_duplicates(subset=self.essential_columns, inplace=True)
 
-    def preprocess(self, df: DataFrame):
+    def __preprocess(self, df: DataFrame):
         """
         The preprocessed tweet will be stored in the column "tidy_tweet".
 
-        Removed hashtags will be stored in the column "hashtags".
+        Hashtags (their content) will be stored in the column "hashtags".
         """
         self.__remove_duplicates(df)
 
@@ -189,6 +188,29 @@ class TweetSentimentAnalyzer:
         self.data = df
 
         return df
+
+    def preprocess(self):
+        self.__preprocess(self.raw_data)
+
+    def save_preprocessed_data(self):
+        if not os.path.exists(cleaned_data_path):
+            os.makedirs(cleaned_data_path)
+
+        write_index = False
+
+        self.data.to_csv(f"{cleaned_data_path}/data.csv", index=write_index)
+        self.train.to_csv(f"{cleaned_data_path}/train.csv", index=write_index)
+        self.validation.to_csv(f"{cleaned_data_path}/validation.csv", index=write_index)
+        self.test.to_csv(f"{cleaned_data_path}/test.csv", index=write_index)
+
+    def load_preprocessed_data(self):
+        try:
+            self.data = pandas.read_csv(f"{cleaned_data_path}/data.csv")
+            self.train = pandas.read_csv(f"{cleaned_data_path}/train.csv")
+            self.validation = pandas.read_csv(f"{cleaned_data_path}/validation.csv")
+            self.test = pandas.read_csv(f"{cleaned_data_path}/test.csv")
+        except FileNotFoundError:
+            print(f"Make sure '{cleaned_data_path}' and cleaned csv files exist")
 
     def train_validation_test_split(self, test_size=0.1, validation_size=0.2, train_size=0.7, shuffle: bool = True,
                                     random_state: int = None):

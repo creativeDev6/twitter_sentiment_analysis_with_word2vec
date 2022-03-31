@@ -5,20 +5,24 @@ from helper import show_used_time
 
 cwd = os.getcwd()
 data_path = f"{cwd}/data"
+cleaned_data_path = f"{cwd}/data/cleaned"
 
 # make sure you get this repository's root folder as your cwd
 print(f"Current Working Directory: {cwd}")
 
 
 def run():
-    tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames())
+    data_was_cleaned = False
+
+    if data_was_cleaned:
+        tsa = TweetSentimentAnalyzer(f"{cleaned_data_path}/data.csv", ColumnNames())
+        tsa.load_preprocessed_data()
+    else:
+        tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames())
+        tsa.preprocess()
     print(f"column headers: {tsa.data.columns.values}")
     print(f'# positive tweets: {len(tsa.raw_data[tsa.raw_data[tsa.column.label] == 0].index)}')
     print(f'# negative tweets: {len(tsa.raw_data[tsa.raw_data[tsa.column.label] == 1].index)}')
-
-    # todo remove later
-    # for checking if data was wrangled
-    tsa.data.to_csv(f"{data_path}/clean/train.csv")
 
     # todo move to loop and use how it is meant to be used
     # tsa.cross_validation(k_fold=5)
@@ -47,6 +51,7 @@ def run():
     tsa.show_test_class_distribution()
 
     tsa.distribute_labels_equally_in_train()
+    tsa.save_preprocessed_data()
 
     print("*" * 50)
     print("After distribute_labels_equally_in_train()")
