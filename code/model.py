@@ -2,7 +2,7 @@ import multiprocessing
 import os
 import warnings
 from enum import Enum, auto
-from time import time
+from time import perf_counter
 
 import gensim
 from gensim.models.doc2vec import TaggedDocument
@@ -126,7 +126,7 @@ class TweetModel:
             if os.path.exists(model_path):
                 print(f"Model: '{model_path}' exists. Model will be overwritten.")
 
-            t = time()
+            t = perf_counter()
             model = train_model(self.method, self.tweet_pool.iloc[:int(self.tweet_count)])
             # only needed when models are deleted manually without deleting folder
             if not os.path.exists(folder):
@@ -226,7 +226,7 @@ def train_model(method: Method, df: DataFrame):
         print("corpus: ", corpus)
 
     # building the vocabulary table
-    t = time()
+    t = perf_counter()
     model.build_vocab(corpus, progress_per=progress_per)
     show_used_time(t, "Time for building vocabulary")
     print("*" * 30)
@@ -278,7 +278,7 @@ def load_or_create_model(method: Method, df, tweet_count, force_retrain=False):
         if os.path.exists(model_path):
             warnings.warn(f"Model: '{model_path}' exists. Model will be overwritten.")
 
-        t = time()
+        t = perf_counter()
         model = train_model(method, df.iloc[:int(tweet_count)])
         # only needed when models are deleted manually without deleting folder
         if not os.path.exists(folder):

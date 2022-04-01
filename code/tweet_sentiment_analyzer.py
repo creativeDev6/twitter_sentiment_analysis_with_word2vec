@@ -1,6 +1,5 @@
 import multiprocessing
 import os
-from time import time
 
 import gensim
 import pandas

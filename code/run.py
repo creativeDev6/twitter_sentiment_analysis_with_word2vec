@@ -1,6 +1,6 @@
 import os
 from tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
-from time import time
+from time import perf_counter
 from helper import show_used_time
 
 cwd = os.getcwd()
@@ -92,6 +92,6 @@ def run():
 
 
 if __name__ == '__main__':
-    t = time()
+    t = perf_counter()
     run()
     show_used_time(t, "run()")
