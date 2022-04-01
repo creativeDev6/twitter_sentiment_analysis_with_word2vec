@@ -1,3 +1,4 @@
+import logging
 import os
 from tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
 from time import perf_counter
@@ -92,6 +93,7 @@ def run():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt="%H:%M:%S", level=logging.INFO)
     t = perf_counter()
     run()
     show_used_time(t, "run()")

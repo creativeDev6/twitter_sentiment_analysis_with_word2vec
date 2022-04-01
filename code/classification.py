@@ -93,13 +93,9 @@ class Classifier:
         # model.docvecs["0"]
         # gensim 4
         # model.dv["0"]
-        # INFO: ConvergenceWarning: lbfgs failed to converge (status=1): STOP: TOTAL NO. of ITERATIONS REACHED LIMIT.
-        # therefore increased max_iter
-        # https://stackoverflow.com/questions/52670012/convergencewarning-liblinear-failed-to-converge-increase-the-number-of-iterati
-        # For small datasets, ‘liblinear’ is a good choice, whereas ‘sag’ and ‘saga’ are faster for large ones.
 
         self.vectors = [self.mean_doc_vector(doc) for doc in self.train[self.column.tidy_tweet]]
-        log_reg = LogisticRegression(solver='liblinear', max_iter=1000)
+        log_reg = LogisticRegression(solver='liblinear', max_iter=100)
         # logreg.fit(train_clean[self.column.tidy_tweet], train_clean[self.column.label])
         print(f"train_classifier -> len(vectors): {len(self.vectors)}, len(labels): {len(self.train[self.column.label])}")
         print(f"shape: {self.vectors[0].shape}")
@@ -141,11 +137,7 @@ class Classifier:
             labels_train, train_doc_vectors = self.vec_for_learning(self.model, train_tagged)
             labels_test, test_doc_vectors = self.vec_for_learning(self.model, test_tagged)
 
-            # INFO: ConvergenceWarning: lbfgs failed to converge (status=1): STOP: TOTAL NO. of ITERATIONS REACHED LIMIT.
-            # therefore increased max_iter
-            # https://stackoverflow.com/questions/52670012/convergencewarning-liblinear-failed-to-converge-increase-the-number-of-iterati
-            # todo look at first 2 options before trying to increase max_iter to 1000
-            log_reg = LogisticRegression(n_jobs=1, C=1e5, max_iter=3000)
+            log_reg = LogisticRegression(max_iter=100)
             log_reg.fit(train_doc_vectors, labels_train)
             # todo old as backup, remove later
             # predicted_labels_test = log_reg.predict(test_doc_vectors)
