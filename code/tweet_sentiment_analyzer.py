@@ -86,6 +86,7 @@ class TweetSentimentAnalyzer:
 
         self.method: Method = Method.WORD2VEC
         self.model: Word2Vec = None
+        self.is_pretrained_model = False
         self.classifier: Classifier = None
 
         # depending on k_fold
@@ -368,13 +369,14 @@ class TweetSentimentAnalyzer:
             self.model = pretrained_model
 
     def load_pretrained_model(self):
+        self.is_pretrained_model = True
         return load_pretrained_model()
 
     def train_classifier(self, tweet_count: int = None):
         if tweet_count is None:
             tweet_count = len(self.train)
 
-        self.classifier = Classifier(self.method, self.model, vector_size,
+        self.classifier = Classifier(self.method, self.model, self.is_pretrained_model, vector_size,
                                      self.train.iloc[:tweet_count],
                                      self.validation,
                                      self.test,

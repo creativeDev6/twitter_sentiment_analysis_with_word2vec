@@ -1,3 +1,4 @@
+import logging
 import sys
 from collections import OrderedDict, namedtuple
 
@@ -23,32 +24,31 @@ def create_tagged_docs(train, test, column: ColumnNames):
 
 
 class Classifier:
-    def __init__(self, method: Method, model: Word2Vec, vector_size: int,
+    def __init__(self, method: Method, model: Word2Vec, is_pretrained_model: bool, vector_size: int,
                  train: DataFrame, validation: DataFrame, test: DataFrame, column_names: ColumnNames = ColumnNames()):
         self.method = method
         self.model = model
+        self.is_pretrained_model = is_pretrained_model
         self.vector_size = vector_size
         self.train = train
         self.validation = validation
         self.test = test
         self.column = column_names
 
-        print("-" * 30)
-        print(f"model: Type: {type(self.model)}, len: {len(self.model.wv)}")
-        print("-" * 30)
-
         self.classifier = None
         self.vectors = None
         self.labels = None
 
+        logging.info(f"Use pretrained model = {is_pretrained_model}")
+
     # todo rename doc_vector
-    def mean_doc_vector(self, tokens, is_pretrained=False):
+    def mean_doc_vector(self, tokens):
         # vec = np.zeros(vector_size).reshape((vector_size, ))
         vec = np.zeros(self.vector_size)
         count = 0
         words_not_in_vocab = []
 
-        if is_pretrained:
+        if self.is_pretrained_model:
             w2v_model = self.model
         else:
             w2v_model = self.model.wv
@@ -104,10 +104,10 @@ class Classifier:
         self.classifier = log_reg
         return log_reg
 
-    def get_prediction_int(self, train: DataFrame, test: DataFrame, is_pretrained=False):
+    def get_prediction_int(self, train: DataFrame, test: DataFrame):
         if self.method == Method.WORD2VEC:
-            train_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in train[self.column.tidy_tweet]]
-            test_doc_vectors = [self.mean_doc_vector(doc, is_pretrained) for doc in test[self.column.tidy_tweet]]
+            train_doc_vectors = [self.mean_doc_vector(doc) for doc in train[self.column.tidy_tweet]]
+            test_doc_vectors = [self.mean_doc_vector(doc) for doc in test[self.column.tidy_tweet]]
 
             log_reg = self.train_classifier()
             log_reg = self.classifier
@@ -173,7 +173,7 @@ class Classifier:
         return self.__test_classifier(self.test)
 
     # todo remove parameter train + also in self.get_prediction_int()?
-    def evaluate_score_data(self, train: DataFrame, test: DataFrame, is_pretrained=False):
+    def evaluate_score_data(self, train: DataFrame, test: DataFrame):
         def scores(test_labels_param, prediction_int_param, average_param, pos_label_param):
             # prevent warning: ignoring pos_label when average != "binary"
             if average_param != "binary":
@@ -190,7 +190,7 @@ class Classifier:
 
             return f1_res, precision_res, recall_res
 
-        prediction_int = self.get_prediction_int(train, test, is_pretrained)
+        prediction_int = self.get_prediction_int(train, test)
 
         """
         if is_pretrained:

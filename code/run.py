@@ -72,24 +72,15 @@ def run():
 
     tsa.visualize_score(specific_scores, "Validation: W2V Specific Model")
 
-    """
     # unspecifc (pretrained) model
     unspecific_scores = []
     pretrained_model = tsa.load_pretrained_model()
     tsa.train_model(pretrained_model=pretrained_model)
     tsa.train_classifier()
-    unspecific_scores.append(
-        tsa.test_classifier())
+    unspecific_scores.extend(
+        tsa.validate_classifier())
 
-    unspecific_scores.clear()
-    for tweet_count in tweet_counts:
-        tsa.train_model(pretrained_model=pretrained_model, tweet_count=tweet_count)
-        tsa.train_classifier()
-        unspecific_scores.extend(
-            tsa.test_classifier())
-    
-    tsa.visualize_score(unspecific_scores, "W2V Unspecific Model")
-    """
+    tsa.visualize_score(unspecific_scores, "Validation: W2V Unspecific Model")
 
 
 if __name__ == '__main__':
