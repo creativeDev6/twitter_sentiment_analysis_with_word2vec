@@ -1,18 +1,15 @@
-import logging
-import multiprocessing
 import os
 
 import gensim
 import pandas
-from gensim.models.doc2vec import TaggedDocument, Word2Vec
+from gensim.models.doc2vec import Word2Vec
 from gensim.parsing import preprocess_string
 from pandas import DataFrame
 from sklearn.model_selection import StratifiedKFold, train_test_split
 
-from helper import show_used_time
 from code.data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
 from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
-from model import Method, load_or_create_model, load_pretrained_model, create_w2v_model, create_d2v_model, read_corpus
+from model import Method, load_or_create_model, load_pretrained_model
 from classification import Classifier
 from visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart
 
@@ -22,34 +19,7 @@ cwd = os.getcwd()
 
 # data
 data_path = f"{cwd}/data"
-cleaned_data_path = f"{cwd}/data/cleaned"
-
-# models
-models_path = f"{cwd}/models"
-# trained models' extension
-extension = ".model"
-pretrained_model_name = "word2vec-google-news-300"
-
-# todo why these parameters?
-# todo adjust parameters
-# model parameters
-# todo should be the same as min_count during preprocessing (remove_less_frequent_words -> min_word_frequency)?
-min_count = 1  # 10
-window = 2
-vector_size = 300
-sample = 6e-5
-alpha = 0.03
-min_alpha = 0.0007
-negative = 20
-sg = 1  # word2vec training algorithm: CBoW (0) (default), skip gram (1)
-dm = 1  # doc2vec training algorithm: distributed memory (1) (default), distributed bag of words (0 or anything else)
-workers = multiprocessing.cpu_count() - 1
-
-# when building vocabulary table show progress
-progress_per = 10000
-
-# train parameters
-epochs = 30  # 30
+cleaned_data_path = f"{data_path}/cleaned"
 
 # endregion
 
@@ -96,10 +66,6 @@ class TweetSentimentAnalyzer:
 
     def __read_data(self, csv):
         self.raw_data = pandas.read_csv(csv)
-        # todo remove
-        print("*" * 30)
-        print(f"len(self.raw_data): {len(self.raw_data)}")
-        print("*" * 30)
 
     def __remove_duplicates(self, df: DataFrame):
         """
@@ -376,7 +342,7 @@ class TweetSentimentAnalyzer:
         if tweet_count is None:
             tweet_count = len(self.train)
 
-        self.classifier = Classifier(self.method, self.model, self.is_pretrained_model, vector_size,
+        self.classifier = Classifier(self.method, self.model, self.is_pretrained_model, self.model.vector_size,
                                      self.train.iloc[:tweet_count],
                                      self.validation,
                                      self.test,
