@@ -51,7 +51,7 @@ def run():
     print("*" * 50)
     tsa.show_train_class_distribution(tweet_counts)
     tsa.show_validation_class_distribution()
-    tsa.show_test_class_distribution()
+    # tsa.show_test_class_distribution()
 
     tsa.distribute_labels_equally_in_train()
     tsa.save_preprocessed_data()
@@ -60,7 +60,8 @@ def run():
     print("After distribute_labels_equally_in_train()")
     print("*" * 50)
     tsa.show_train_class_distribution(tweet_counts)
-    tsa.show_test_class_distribution()
+    tsa.show_validation_class_distribution()
+    # tsa.show_test_class_distribution()
 
     # specific model
     for tweet_count in tweet_counts:
