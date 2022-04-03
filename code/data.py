@@ -1,4 +1,3 @@
-from collections import Counter
 from imblearn.over_sampling import RandomOverSampler
 from pandas import DataFrame
 
@@ -22,13 +21,11 @@ column = ColumnNames()
 
 # todo test different ratios
 def oversample(df: DataFrame, ratio=1, random_state=None):
-    print(f"Before oversampling: {Counter(df[column.label])}")
     # todo try different oversampling methods (e.g. SMOTE)
     oversample_method = RandomOverSampler(sampling_strategy=ratio, random_state=random_state)
     labels = df[column.label]
-    data_oversampled, labels_oversampled = oversample_method.fit_resample(df, labels)
-    print(f"After oversampling: {Counter(labels_oversampled)}")
-    return data_oversampled
+    df_oversampled, labels_oversampled = oversample_method.fit_resample(df, labels)
+    return df_oversampled, labels_oversampled
 
 
 def get_duplicates(df: DataFrame, subset: [str] = None):

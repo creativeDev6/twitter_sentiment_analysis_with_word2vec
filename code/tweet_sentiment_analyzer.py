@@ -1,4 +1,5 @@
 import os
+from collections import Counter
 
 import gensim
 import pandas
@@ -242,9 +243,11 @@ class TweetSentimentAnalyzer:
 
         self.fold_size = len(self.test)
 
-    @staticmethod
-    def __oversample(df: DataFrame, ratio=1, random_state=None):
-        return oversample(df, ratio=ratio, random_state=random_state)
+    def __oversample(self, df: DataFrame, ratio=1, random_state=None):
+        print(f"Before oversampling: {Counter(df[self.column.label])}")
+        df_oversampled, labels_oversampled = oversample(df, ratio=ratio, random_state=random_state)
+        print(f"After oversampling: {Counter(labels_oversampled)}")
+        return df_oversampled
 
     def oversample_train(self, ratio=1, random_state=None):
         self.train = self.__oversample(self.train, ratio=ratio, random_state=random_state)
@@ -253,7 +256,6 @@ class TweetSentimentAnalyzer:
         self.train = distribute_equally(self.train, self.column.label)
 
     def __show_class_distribution(self, df: DataFrame, tweet_counts, title_prefix=""):
-        from collections import Counter
         print("*" * 30)
         print(f"{title_prefix} Class distribution")
         print("*" * 30)
