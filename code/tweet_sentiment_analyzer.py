@@ -242,8 +242,12 @@ class TweetSentimentAnalyzer:
 
         self.fold_size = len(self.test)
 
-    def oversample(self, ratio=1):
-        self.train = oversample(self.train, ratio=ratio)
+    @staticmethod
+    def __oversample(df: DataFrame, ratio=1, random_state=None):
+        return oversample(df, ratio=ratio, random_state=random_state)
+
+    def oversample_train(self, ratio=1, random_state=None):
+        self.train = self.__oversample(self.train, ratio=ratio, random_state=random_state)
 
     def distribute_labels_equally_in_train(self):
         self.train = distribute_equally(self.train, self.column.label)

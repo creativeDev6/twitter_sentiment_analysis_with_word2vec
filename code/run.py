@@ -14,6 +14,7 @@ print(f"Current Working Directory: {cwd}")
 
 def run():
     data_was_cleaned = False
+    random_state = 1
 
     if data_was_cleaned:
         tsa = TweetSentimentAnalyzer(f"{cleaned_data_path}/data.csv", ColumnNames())
@@ -29,13 +30,14 @@ def run():
     # tsa.cross_validation(k_fold=5)
     # tsa.fold_size = len(tsa.train) / 5
     # print(f"tsa.fold_size: {tsa.fold_size}")
-    tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7, shuffle=True, random_state=1)
+    tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7, shuffle=True,
+                                    random_state=random_state)
 
     # tsa.visualize_train_data()
     # tsa.visualize_validation_data()
     ## tsa.visualize_test_data()
 
-    tsa.oversample(ratio=1)
+    tsa.oversample_train(ratio=1, random_state=random_state)
     # tweet_counts = [tsa.fold_size * x for x in range(1, 6)]
     # todo remove later
     # tweet_counts = [tsa.fold_size]

@@ -21,10 +21,10 @@ column = ColumnNames()
 
 
 # todo test different ratios
-def oversample(df: DataFrame, ratio=1):
+def oversample(df: DataFrame, ratio=1, random_state=None):
     print(f"Before oversampling: {Counter(df[column.label])}")
     # todo try different oversampling methods (e.g. SMOTE)
-    oversample_method = RandomOverSampler(sampling_strategy=ratio)
+    oversample_method = RandomOverSampler(sampling_strategy=ratio, random_state=random_state)
     labels = df[column.label]
     data_oversampled, labels_oversampled = oversample_method.fit_resample(df, labels)
     print(f"After oversampling: {Counter(labels_oversampled)}")
