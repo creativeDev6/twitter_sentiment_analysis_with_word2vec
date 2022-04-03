@@ -1,5 +1,7 @@
+import logging
 import os
 from collections import Counter
+from enum import Enum
 
 import gensim
 import pandas
@@ -27,6 +29,11 @@ cleaned_data_path = f"{data_path}/cleaned"
 # always show all columns and rows on a panda's DataFrame
 # pandas.options.display.max_rows = None
 pandas.options.display.max_columns = None
+
+
+class TestSet(Enum):
+    VALIDATION = "Validation"
+    TEST = "Test"
 
 
 class TweetSentimentAnalyzer:
@@ -361,7 +368,48 @@ class TweetSentimentAnalyzer:
     def test_classifier(self):
         return self.classifier.test_classifier()
 
-    def visualize_score(self, scores: [], title_prefix=None):
+    @staticmethod
+    def visualize_score(scores: [], title=None):
         # score_data = namedtuple("scoreData", "tweet_count label f1 precision recall")
         scores_data = DataFrame(data=scores)
-        grouped_bar_chart(scores_data, title="Score Depending on Tweet Count", title_prefix=title_prefix)
+        grouped_bar_chart(scores_data, title=title)
+
+    # region encapsulate multiple operations
+
+    def __test_model(self, use_set: TestSet = TestSet.VALIDATION, pretrained_model=None, tweet_counts=None):
+        test_func = None
+
+        if use_set == TestSet.VALIDATION:
+            test_func = self.validate_classifier
+        elif use_set == TestSet.TEST:
+            test_func = self.test_classifier
+        else:
+            logging.error(f"Invalid use set '{use_set}'. Expected one of {[e.name for e in TestSet]}.")
+
+        if pretrained_model:
+            self.train_model(pretrained_model=self.load_pretrained_model())
+            self.train_classifier()
+            return self.visualize_score(test_func(), title=f"{use_set.value}: W2V Unspecific Model")
+
+        scores = []
+
+        for tweet_count in tweet_counts:
+            self.train_model(tweet_count=tweet_count)
+            self.train_classifier(tweet_count)
+            scores.extend(test_func())
+
+        self.visualize_score(scores, title=f"{use_set.value}: W2V Specific Models")
+
+    def validate_specific_models_by(self, tweet_counts: [int]):
+        self.__test_model(TestSet.VALIDATION, tweet_counts=tweet_counts)
+
+    def validate_unspecific_pretrained_model(self):
+        self.__test_model(TestSet.VALIDATION, pretrained_model=self.load_pretrained_model())
+
+    def test_specific_models_by(self, tweet_counts: [int]):
+        self.__test_model(TestSet.TEST, tweet_counts=tweet_counts)
+
+    def test_unspecific_pretrained_model(self):
+        self.__test_model(TestSet.TEST, pretrained_model=self.load_pretrained_model())
+
+    # endregion

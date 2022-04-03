@@ -63,27 +63,12 @@ def run():
     tsa.show_validation_class_distribution()
     # tsa.show_test_class_distribution()
 
-    # specific model
-    for tweet_count in tweet_counts:
-        tsa.train_model(tweet_count=tweet_count)
-        tsa.train_classifier(tweet_count=tweet_count)
-        specific_scores.extend(
-            tsa.validate_classifier())
-
+    tsa.validate_specific_models_by(tweet_counts=tweet_counts)
     # todo save best performing model chosen by validation
-    # todo add final tsa.test_classifier at the end
+    tsa.validate_unspecific_pretrained_model()
 
-    tsa.visualize_score(specific_scores, "Validation: W2V Specific Model")
-
-    # unspecifc (pretrained) model
-    unspecific_scores = []
-    pretrained_model = tsa.load_pretrained_model()
-    tsa.train_model(pretrained_model=pretrained_model)
-    tsa.train_classifier()
-    unspecific_scores.extend(
-        tsa.validate_classifier())
-
-    tsa.visualize_score(unspecific_scores, "Validation: W2V Unspecific Model")
+    # tsa.test_specific_models_by(tweet_counts=tweet_counts)
+    # tsa.test_unspecific_pretrained_model()
 
 
 if __name__ == '__main__':
