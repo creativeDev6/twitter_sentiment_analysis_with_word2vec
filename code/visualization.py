@@ -81,9 +81,7 @@ def grouped_bar_chart(d, title):
     plt.title(f"{title}")
     plt.xlabel("Tweet Count")
     plt.ylabel("F1-Score")
-    # todo add description label
-    plt.legend(loc='center left', prop={'size': 10}, title="Labels")
-    # todo rename hue values
+    plt.legend(loc='lower right', prop={'size': 10}, title="Labels")
 
     # ax.set(xlabel="Tweet Count")
     # ax.set(ylabel='F1-Score')
@@ -106,7 +104,6 @@ def grouped_bar_chart(d, title):
         # If you want a consistent color, you can just set it as a constant, e.g. #222222
         ax.text(text_x, text_y, text, ha='center', va='bottom', color=bar_color,
                 size=12)
-    # todo save figure
     # plt.savefig("barplot_Seaborn_barplot_Python.png")
     plt.show()
 
