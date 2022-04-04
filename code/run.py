@@ -38,12 +38,7 @@ def run():
     ## tsa.visualize_test_data()
 
     tsa.oversample_train(ratio=1, random_state=random_state)
-    # tweet_counts = [tsa.fold_size * x for x in range(1, 6)]
-    # todo remove later
-    # tweet_counts = [tsa.fold_size]
     tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, len(tsa.train)]
-    specific_scores = []
-    # for tweet_count in [100, 1_000, 10_000, 20_000, len(tsa.train)]:
 
     # Test run label distribution
     print("*" * 50)
@@ -63,9 +58,9 @@ def run():
     tsa.show_validation_class_distribution()
     # tsa.show_test_class_distribution()
 
-    tsa.validate_specific_models_by(tweet_counts=tweet_counts)
+    tsa.validate_specific_models_by(tweet_counts)
     # todo save best performing model chosen by validation
-    tsa.validate_unspecific_pretrained_model()
+    tsa.validate_unspecific_pretrained_model(tweet_counts)
 
     # tsa.test_specific_models_by(tweet_counts=tweet_counts)
     # tsa.test_unspecific_pretrained_model()
