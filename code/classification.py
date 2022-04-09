@@ -36,6 +36,7 @@ class Classifier:
         self.column = column_names
 
         self.classifier = None
+        self.solver = "liblinear"
         self.vectors = None
         self.labels = None
 
@@ -95,7 +96,7 @@ class Classifier:
         # model.dv["0"]
 
         self.vectors = [self.mean_doc_vector(doc) for doc in self.train[self.column.tidy_tweet]]
-        log_reg = LogisticRegression(solver='liblinear', max_iter=100)
+        log_reg = LogisticRegression(solver=self.solver, max_iter=100)
         # logreg.fit(train_clean[self.column.tidy_tweet], train_clean[self.column.label])
         print(f"train_classifier -> len(vectors): {len(self.vectors)}, len(labels): {len(self.train[self.column.label])}")
         print(f"shape: {self.vectors[0].shape}")
@@ -137,7 +138,7 @@ class Classifier:
             labels_train, train_doc_vectors = self.vec_for_learning(self.model, train_tagged)
             labels_test, test_doc_vectors = self.vec_for_learning(self.model, test_tagged)
 
-            log_reg = LogisticRegression(max_iter=100)
+            log_reg = LogisticRegression(solver=self.solver, max_iter=100)
             log_reg.fit(train_doc_vectors, labels_train)
             # todo old as backup, remove later
             # predicted_labels_test = log_reg.predict(test_doc_vectors)
