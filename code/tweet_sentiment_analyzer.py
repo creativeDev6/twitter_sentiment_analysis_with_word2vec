@@ -256,6 +256,9 @@ class TweetSentimentAnalyzer:
         print(f"After oversampling: {Counter(labels_oversampled)}")
         return df_oversampled
 
+    def oversample_validation(self, ratio=1, random_state=None):
+        self.validation = self.__oversample(self.validation, ratio=ratio, random_state=random_state)
+
     def oversample_train(self, ratio=1, random_state=None):
         self.train = self.__oversample(self.train, ratio=ratio, random_state=random_state)
 
