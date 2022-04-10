@@ -7,7 +7,7 @@ from gensim.models import Word2Vec, Doc2Vec
 from gensim.models.doc2vec import TaggedDocument
 from pandas import DataFrame
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import f1_score, precision_score, recall_score
+from sklearn.metrics import f1_score, precision_score, recall_score, matthews_corrcoef
 
 from code.data import ColumnNames
 from model import Method
@@ -159,7 +159,8 @@ class Classifier:
             print("-" * 100)
             for score in data:
                 print(
-                    f"Label: {score.label} F1-Score: {score.f1} (Precision: {score.precision}, Recall {score.recall})")
+                    f"Label: {score.label} F1-Score: {score.f1} (Precision: {score.precision}, Recall: {score.recall})"
+                    f", MCC: {score.mcc}")
             print("-" * 100)
 
         score_data = self.evaluate_score_data(self.train, df_test)
@@ -189,7 +190,8 @@ class Classifier:
                 recall_res = recall_score(test_labels_param, prediction_int_param, average=average_param,
                                           pos_label=pos_label_param)
 
-            return f1_res, precision_res, recall_res
+            mcc_res = matthews_corrcoef(test_labels_param, prediction_int_param)
+            return f1_res, precision_res, recall_res, mcc_res
 
         prediction_int = self.get_prediction_int(train, test)
 
@@ -209,7 +211,7 @@ class Classifier:
         # f1, precision and recall
         result = []
         # todo is it possible to pass this as a parameter to make it more flexible?
-        score_data = namedtuple("scoreData", "tweet_count label f1 precision recall")
+        score_data = namedtuple("scoreData", "tweet_count label f1 precision recall mcc")
         # get score for individual labels (binary)
         # (1, 'weighted') is not needed because result will be calculated from both labels
         for i in [(0, 'binary'), (1, 'binary'), (0, 'weighted')]:
@@ -225,10 +227,10 @@ class Classifier:
             # f1 = f1_score(test_labels, prediction_int, average=average, pos_label=pos_label)
             # precision = precision_score(test_labels, prediction_int, average=average, pos_label=pos_label)
             # recall = recall_score(test_labels, prediction_int, average=average, pos_label=pos_label)
-            f1, precision, recall = scores(test[self.column.label], prediction_int, average, pos_label)
+            f1, precision, recall, mcc = scores(test[self.column.label], prediction_int, average, pos_label)
             # result.append(zip(average, pos_label, f1, precision, recall))
             result.append(score_data(tweet_count=tweet_count, label=average_label, f1=f1, precision=precision,
-                                     recall=recall))
+                                     recall=recall, mcc=recall))
 
         # return f"F1-score: {f1_score(test_labels, prediction_int, pos_label=0)}"
         # return DataFrame(result)

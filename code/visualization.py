@@ -75,12 +75,12 @@ def word_freq_bar_plot(words: DataFrame, *, title_prefix="", title="", num_words
 
 
 # show F1-scores for (un)specific models + label 0/1 average='binary' + average='weighted'
-def grouped_bar_chart(d, title):
+def grouped_bar_chart(d, y, title):
     # grouping on average_label
-    ax = sns.barplot(x="tweet_count", y="f1", hue="label", data=d)
+    ax = sns.barplot(x="tweet_count", y=y, hue="label", data=d)
     plt.title(f"{title}")
     plt.xlabel("Tweet Count")
-    plt.ylabel("F1-Score")
+    plt.ylabel(f"{y.upper()}")
     plt.legend(loc='lower right', prop={'size': 10}, title="Labels")
 
     # ax.set(xlabel="Tweet Count")

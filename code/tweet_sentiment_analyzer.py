@@ -381,9 +381,11 @@ class TweetSentimentAnalyzer:
 
     @staticmethod
     def visualize_score(scores: [], title=None):
-        # score_data = namedtuple("scoreData", "tweet_count label f1 precision recall")
+        # score_data = namedtuple("scoreData", "tweet_count label f1 precision recall mcc")
         scores_data = DataFrame(data=scores)
-        grouped_bar_chart(scores_data, title=title)
+        # y="mcc" can also be used
+        # see https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html
+        grouped_bar_chart(scores_data, y="f1", title=title)
 
     # region encapsulate multiple operations
 
