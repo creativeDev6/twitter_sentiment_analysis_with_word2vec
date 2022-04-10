@@ -22,9 +22,8 @@ def run():
     else:
         tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames())
         tsa.preprocess()
-    print(f"column headers: {tsa.data.columns.values}")
-    print(f'# positive tweets: {len(tsa.raw_data[tsa.raw_data[tsa.column.label] == 0].index)}')
-    print(f'# negative tweets: {len(tsa.raw_data[tsa.raw_data[tsa.column.label] == 1].index)}')
+
+    tsa.show_data_class_distribution()
 
     # todo move to loop and use how it is meant to be used
     # tsa.cross_validation(k_fold=5)

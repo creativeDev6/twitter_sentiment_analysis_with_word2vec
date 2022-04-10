@@ -4,6 +4,7 @@ from collections import Counter
 from enum import Enum
 
 import gensim
+import numpy as np
 import pandas
 from gensim.models.doc2vec import Word2Vec
 from gensim.parsing import preprocess_string
@@ -161,6 +162,7 @@ class TweetSentimentAnalyzer:
         df = df.reset_index(drop=True)
 
         self.data = df
+        logging.info(f"Column headers: {self.data.columns.values}")
 
         return df
 
@@ -186,6 +188,7 @@ class TweetSentimentAnalyzer:
             self.test = pandas.read_csv(f"{cleaned_data_path}/test.csv")
         except FileNotFoundError:
             print(f"Make sure '{cleaned_data_path}' and cleaned csv files exist")
+        logging.info(f"Column headers: {self.data.columns.values}")
 
     def train_validation_test_split(self, test_size=0.1, validation_size=0.2, train_size=0.7, shuffle: bool = True,
                                     random_state: int = None):
@@ -267,15 +270,20 @@ class TweetSentimentAnalyzer:
 
     def __show_class_distribution(self, df: DataFrame, tweet_counts, title_prefix=""):
         print("*" * 30)
-        print(f"{title_prefix} Class distribution")
+        print(f"{title_prefix} Class Labels Distribution")
         print("*" * 30)
         for tweet_count in tweet_counts:
             dist = Counter(df.iloc[:tweet_count][self.column.label])
             ratio = dist[0] / dist[1]
-            print(f"tweet_count: {tweet_count}")
+            print(f"Total tweets: {tweet_count}")
             print(f"Distribution: {Counter(df.iloc[:tweet_count][self.column.label])}")
+            print(f"Negative tweets: {dist[1]}")
+            print(f"Positive tweets: {dist[0]}")
             print(f"Ratio: 1 : {ratio:.2f}")
             print("-" * 30)
+
+    def show_data_class_distribution(self):
+        self.__show_class_distribution(self.data, [len(self.data.index)], title_prefix="Data")
 
     def show_train_class_distribution(self, tweet_counts: [int]):
         self.__show_class_distribution(self.train, tweet_counts, title_prefix="Train")
