@@ -4,7 +4,6 @@ from collections import Counter
 from enum import Enum
 
 import gensim
-import numpy as np
 import pandas
 from gensim.models.doc2vec import Word2Vec
 from gensim.parsing import preprocess_string
@@ -371,7 +370,7 @@ class TweetSentimentAnalyzer:
                                      self.validation,
                                      self.test,
                                      self.column)
-        self.classifier.train_classifier()
+        self.classifier.fit()
 
     def validate_classifier(self):
         return self.classifier.validate_classifier()
