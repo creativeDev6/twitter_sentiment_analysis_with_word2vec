@@ -230,7 +230,7 @@ class Classifier:
             f1, precision, recall, mcc = scores(test[self.column.label], prediction_int, average, pos_label)
             # result.append(zip(average, pos_label, f1, precision, recall))
             result.append(score_data(tweet_count=tweet_count, label=average_label, f1=f1, precision=precision,
-                                     recall=recall, mcc=recall))
+                                     recall=recall, mcc=mcc))
 
         # return f"F1-score: {f1_score(test_labels, prediction_int, pos_label=0)}"
         # return DataFrame(result)
