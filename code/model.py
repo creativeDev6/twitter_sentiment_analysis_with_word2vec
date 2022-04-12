@@ -1,7 +1,8 @@
+import logging
 import multiprocessing
 import os
 import warnings
-from enum import Enum, auto
+from enum import Enum
 from time import perf_counter
 
 from gensim.models.doc2vec import TaggedDocument
@@ -9,7 +10,6 @@ from pandas import DataFrame
 from gensim.models import Word2Vec, Doc2Vec
 import gensim.downloader as api
 
-# todo rename in utility
 from helper import show_used_time
 
 # region variables
@@ -22,11 +22,8 @@ models_path = f"{cwd}/models"
 extension = ".model"
 pretrained_model_name = "word2vec-google-news-300"
 
-# todo why these parameters?
-# todo adjust parameters
 # model parameters
-# todo should be the same as min_count during preprocessing (remove_less_frequent_words -> min_word_frequency)?
-min_count = 1  # 10
+min_count = 1
 window = 2
 vector_size = 300
 sample = 6e-5
@@ -41,15 +38,14 @@ workers = multiprocessing.cpu_count() - 1
 progress_per = 10000
 
 # train parameters
-epochs = 30  # 30
-
+epochs = 30
 
 # endregion
 
 
 class Method(Enum):
-    WORD2VEC = auto()
-    DOC2VEC = auto()
+    WORD2VEC = "word2vec"
+    DOC2VEC = "doc2vec"
 
 
 # region models
@@ -82,46 +78,30 @@ def create_d2v_model():
 
 def read_corpus(df, tokens_only=False):
     for i in df.index:
-        # tokens = gensim.utils.simple_preprocess(clean_tweet)
-        # clean_tweet = preprocess(df["tweet"][i])
-        # tokens = clean_tweet["tidy_tweet"][i]
-        # todo use already preprocessed df
         tokens = df[i]
-        print(tokens)
-        print("-" * 30)
-        # try:
-        #     tokens = df[i]
-        #     # tokens = df.iloc[i]
-        # except KeyError as err:
-        #     print(f"i: {i}")
-        #     # print(f"i: {i}, df[i]: {df[i]}")
-        # # tokens = df["tidy_tweet"][i]
         if tokens_only:
             yield tokens
         else:
             # For training data, add tags
             yield TaggedDocument(tokens, [i])
-            # yield TaggedDocument(words=tokens, tags=[i])
 
 
-def load_pretrained_model() -> Word2Vec:
+def load_pretrained_model():
     return api.load(pretrained_model_name)
 
 
 def train_model(method: Method, df: DataFrame):
     if method == Method.WORD2VEC:
         model = create_w2v_model()
-        # todo do not use copy?
         corpus = df.copy()
-        print("corpus: ", corpus)
     elif method == Method.DOC2VEC:
         model = create_d2v_model()
-        # todo what is better as tags, unique integer or label (0/1)?
-        #  problem: passed df contains only tidy_tweets
         corpus = list(read_corpus(df))
         corpus = [TaggedDocument(doc, [i]) for i, doc in enumerate(df)]
-        # corpus = [TaggedDocument(doc, 'tag') for doc in df]
-        print("corpus: ", corpus)
+    else:
+        raise ValueError(f"'{method}' is not defined. Defined values: {[e.name for e in Method]}")
+
+    logging.debug(f"CORPUS:\n{corpus}")
 
     # building the vocabulary table
     t = perf_counter()
@@ -139,19 +119,19 @@ def train_model(method: Method, df: DataFrame):
 
 
 def load_or_create_model(method: Method, df, tweet_count, force_retrain=False):
-    """Try to load model from disk. If it cannot be loaded from disk it will be trained and stored on disk."""
+    """
+    Try to load model from disk. If it cannot be loaded from disk it will be trained and stored on disk.
+    """
     if method == Method.WORD2VEC:
         method_object = Word2Vec
-        method_description = "word2vec"
         method_description_short = "w2v"
     elif method == Method.DOC2VEC:
         method_object = Doc2Vec
-        method_description = "doc2vec"
         method_description_short = "d2v"
     else:
         raise ValueError(f"'{method}' is not defined. Defined values: {[e.name for e in Method]}")
 
-    folder = f"{models_path}/{method_description}"
+    folder = f"{models_path}/{method.value}"
     filename = f"{tweet_count}_tweets_{method_description_short}"
     model_path = f"{folder}/{filename}{extension}"
 
@@ -168,10 +148,11 @@ def load_or_create_model(method: Method, df, tweet_count, force_retrain=False):
             os.makedirs(folder)
         print(f"model: {model}")
         model.save(model_path)
-        show_used_time(t, f"Time for training {method_description} model with {tweet_count} tweets")
+        show_used_time(t, f"Time for training {method.value} model with {tweet_count} tweets")
 
-    print("MODEL: ", model)
-    print(f"model path: {model_path}")
+    logging.info(f"MODEL:  {model}")
+    logging.info(f"MODEL PATH: {model_path}")
+
     return model
 
 # endregion
