@@ -264,6 +264,27 @@ class TweetSentimentAnalyzer:
     def oversample_train(self, ratio=1, random_state=None):
         self.train = self.__oversample(self.train, ratio=ratio, random_state=random_state)
 
+    def show_train_duplicates_distribution(self, tweet_counts: [int]):
+        print("*" * 30)
+        print("Duplicate Distribution")
+        print("*" * 30)
+        for tweet_count in tweet_counts:
+            current_train = self.train.iloc[:tweet_count]
+            without_duplicates = current_train.drop_duplicates(subset=[self.column.tweet])
+            without_duplicates_minority = without_duplicates[without_duplicates[self.column.label] == 1]
+            without_duplicates_minority_count = len(without_duplicates_minority)
+            duplicates_count = count_duplicates(current_train, self.essential_columns)
+            try:
+                # ratio = tweet_count / duplicates_count
+                ratio = duplicates_count / tweet_count
+            except ZeroDivisionError:
+                ratio = 0
+            print(f"Total tweets: {tweet_count}")
+            print(f"Distribution: {duplicates_count} : {tweet_count} (duplicates : tweet_count)")
+            print(f"Ratio: 1 : {ratio:.2f}")
+            print(f"No duplicates: {without_duplicates_minority_count} (in minority class 1)")
+            print("-" * 30)
+
     def distribute_labels_equally_in_train(self):
         self.train = distribute_equally(self.train, self.column.label)
 

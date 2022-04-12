@@ -38,6 +38,7 @@ def run():
 
     tsa.oversample_train(ratio=1, random_state=random_state)
     tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, len(tsa.train)]
+    tsa.show_train_duplicates_distribution(tweet_counts)
 
     # Test run label distribution
     print("*" * 50)
@@ -56,6 +57,8 @@ def run():
     tsa.show_train_class_distribution(tweet_counts)
     tsa.show_validation_class_distribution()
     # tsa.show_test_class_distribution()
+
+    tsa.show_train_duplicates_distribution(tweet_counts)
 
     tsa.validate_specific_models_by(tweet_counts)
     # todo save best performing model chosen by validation
