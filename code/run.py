@@ -25,10 +25,6 @@ def run():
 
     tsa.show_data_class_distribution()
 
-    # todo move to loop and use how it is meant to be used
-    # tsa.cross_validation(k_fold=5)
-    # tsa.fold_size = len(tsa.train) / 5
-    # print(f"tsa.fold_size: {tsa.fold_size}")
     tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7, shuffle=True,
                                     random_state=random_state)
 

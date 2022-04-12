@@ -47,8 +47,6 @@ class TweetSentimentAnalyzer:
     test = None
 
     method = Method.WORD2VEC
-    # depending on k_fold
-    fold_size = None
     """
 
     def __init__(self, csv, column_names: ColumnNames):
@@ -66,9 +64,6 @@ class TweetSentimentAnalyzer:
         self.model: Word2Vec = None
         self.is_pretrained_model = False
         self.classifier: Classifier = None
-
-        # depending on k_fold
-        self.fold_size = None
 
         self.__read_data(csv)
 
@@ -208,50 +203,6 @@ class TweetSentimentAnalyzer:
                                                       random_state=random_state,
                                                       stratify=temp_validation[self.column.label])
 
-    def cross_validation(self, k_fold=5):
-        # fixme shuffle=True not working (should work tested on 2021-09-22)
-        skf = StratifiedKFold(n_splits=k_fold, shuffle=False, random_state=None)
-
-        # fixme
-        #  evaluation in each fold + store values and calculate mean
-        #  otherwise (holdout validation) last fold = test and {1-4} folds = train
-        fold = 0
-        # todo divide data into 3 sections:
-        #  training, validation (used for tweaking parameters) and test set (testing performance)?
-        for train_index, test_index in skf.split(self.data[self.column.tweet], self.data[self.column.label]):
-            fold += 1
-
-            print(f"Fold - {fold} -")
-            print(f"TRAIN (len: {len(train_index)}: {train_index} TEST (len: {len(test_index)}: {test_index}")
-            print("tweet ", self.data[self.column.tweet].iloc[train_index],
-                  self.data[self.column.tweet].iloc[test_index])
-            print("tidy_tweet ", self.data[self.column.tidy_tweet].iloc[train_index],
-                  self.data[self.column.tidy_tweet].iloc[test_index])
-            print("hashtags ", self.data[self.column.hashtags].iloc[train_index],
-                  self.data[self.column.hashtags].iloc[test_index])
-            print("labels ", self.data[self.column.label].iloc[train_index],
-                  self.data[self.column.label].iloc[test_index])
-
-            train_tweets, test_tweets = self.data[self.column.tweet].iloc[train_index], \
-                                        self.data[self.column.tweet].iloc[test_index]
-            train_tidy_tweets, test_tidy_tweets = self.data[self.column.tidy_tweet].iloc[train_index], \
-                                                  self.data[self.column.tidy_tweet].iloc[test_index]
-            train_hashtags, test_hashtags = self.data[self.column.hashtags].iloc[train_index], \
-                                            self.data[self.column.hashtags].iloc[test_index]
-            train_labels, test_labels = self.data[self.column.label].iloc[train_index], \
-                                        self.data[self.column.label].iloc[test_index]
-            print(f"Current TRAIN (len: {len(train_tweets)}) TEST (len: {len(test_tweets)})")
-
-        # save stratified data as DataFrame
-        self.train = DataFrame(list(zip(train_labels, train_tweets, train_tidy_tweets, train_hashtags)),
-                               columns=[self.column.label, self.column.tweet, self.column.tidy_tweet,
-                                        self.column.hashtags])
-        self.test = DataFrame(list(zip(test_labels, test_tweets, test_tidy_tweets, test_hashtags)),
-                              columns=[self.column.label, self.column.tweet, self.column.tidy_tweet,
-                                       self.column.hashtags])
-
-        self.fold_size = len(self.test)
-
     def __oversample(self, df: DataFrame, ratio=1, random_state=None):
         print(f"Before oversampling: {Counter(df[self.column.label])}")
         df_oversampled, labels_oversampled = oversample(df, ratio=ratio, random_state=random_state)
@@ -371,9 +322,6 @@ class TweetSentimentAnalyzer:
             print(f"Pretrained model: '{pretrained_model}' will be used.")
             # self.model = pretrained_model
             # set other fields
-            # todo which fold_size?
-            # self.fold_size = len(pretrained_model.wv)
-            self.fold_size = len(self.train)
             self.method = Method.WORD2VEC
 
             self.model = pretrained_model
