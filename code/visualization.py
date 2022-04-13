@@ -52,7 +52,7 @@ def save_plot(save_path: str):
         try:
             if os.path.exists(filename):
                 warnings.warn(f"Plot: '{filename}' exists. Plot will be overwritten.")
-            plt.savefig(filename)
+            plt.savefig(filename, bbox_inches="tight")
         except OSError as error:
             print(f"Plot '{filename}' cannot be saved. See {error}")
     else:
