@@ -4,16 +4,17 @@ from collections import Counter
 from enum import Enum
 
 import gensim
+import numpy as np
 import pandas
 from gensim.models.doc2vec import Word2Vec
 from gensim.parsing import preprocess_string
 from pandas import DataFrame
-from sklearn.model_selection import StratifiedKFold, train_test_split
+from sklearn.model_selection import train_test_split
 
-from code.data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
-from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
-from model import Method, load_or_create_model, load_pretrained_model
 from classification import Classifier
+from code.data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
+from model import Method, load_or_create_model, load_pretrained_model
+from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
 from visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart
 
 # region variables
@@ -266,37 +267,92 @@ class TweetSentimentAnalyzer:
         self.__show_class_distribution(self.test, tweet_counts=[len(self.test)], title_prefix="Test")
 
     def __visualize_data(self, data: DataFrame, title_prefix: str):
-        pos_words = data[self.column.tidy_tweet][data[self.column.label] == 0]
-        neg_words = data[self.column.tidy_tweet][data[self.column.label] == 1]
+        num_words_to_plot = 20
 
-        print(neg_words.head(15))
-        print(pos_words.head(15))
-
-        # todo rethink: pos/neg words will be in both sets so there are no true pos/neg words
-        ratio_pie_chart([len(pos_words), len(neg_words)],
-                        title_prefix=title_prefix,
-                        title="Label Ratio",
-                        labels=["Positive", "Negative"])
-
-        word_freq_bar_plot(neg_words, title_prefix=title_prefix, title="Negative Labeled Tweets", num_words_to_plot=20)
-        word_freq_bar_plot(pos_words, title_prefix=title_prefix, title="Positive Labeled Tweets", num_words_to_plot=20)
-
-        # fixme is this correct, per total words and per tweet??? plots are identical, is len(pos_word)==len(pos_words)???
-        # word frequency percentage for total words (to better compare negative/positive word frequencies)
-        word_freq_bar_plot(pos_words, title_prefix=title_prefix, title="Positive Labeled Tweets", num_words_to_plot=20,
-                           total_count=len(pos_words),
-                           y_suffix="(Percentage Per Total Words)")
-        word_freq_bar_plot(neg_words, title_prefix=title_prefix, title="Negative Labeled Tweets", num_words_to_plot=20,
-                           total_count=len(neg_words),
-                           y_suffix="(Percentage Per Total Words)")
+        def merge_lists(df: DataFrame):
+            concatenated = []
+            for tweet in df:
+                concatenated.extend(tweet)
+            return concatenated
 
         pos_tweets = data[self.column.tidy_tweet][data[self.column.label] == 0]
         neg_tweets = data[self.column.tidy_tweet][data[self.column.label] == 1]
 
-        word_freq_bar_plot(pos_words, title_prefix=title_prefix, title="Positive Labeled Tweets", num_words_to_plot=20,
-                           total_count=len(pos_tweets), y_suffix="(Percentage Per Tweet)")
-        word_freq_bar_plot(neg_words, title_prefix=title_prefix, title="Negative Labeled Tweets", num_words_to_plot=20,
-                           total_count=len(neg_tweets), y_suffix="(Percentage Per Tweet)")
+        # words from positive/negative tweets
+        pos_words = merge_lists(pos_tweets)
+        neg_words = merge_lists(neg_tweets)
+
+        # unique words from positive/negative tweets
+        pos_words_unique = np.unique(pos_words)
+        neg_words_unique = np.unique(neg_words)
+
+        # region debugging
+
+        logging.info(f"\n{neg_tweets.head(num_words_to_plot)}")
+        logging.info(f"\n{pos_tweets.head(num_words_to_plot)}")
+
+        logging.info(f"len(pos_words): {len(pos_words)}")
+        logging.info(f"len(neg_words): {len(neg_words)}")
+
+        logging.info(f"len(pos_words_unique): {len(pos_words_unique)}")
+        logging.info(f"len(neg_words_unique): {len(neg_words_unique)}")
+
+        logging.debug(f"pos_words\n{pos_words}")
+        logging.debug(f"neg_words\n{neg_words}")
+
+        # endregion
+
+        ratio_pie_chart([len(pos_tweets), len(neg_tweets)],
+                        title_prefix=title_prefix,
+                        title="Label Ratio",
+                        labels=["Positive", "Negative"])
+
+        word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Negative Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot)
+        word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Positive Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot)
+
+        # region for better comparison of word frequencies due to imbalanced class distribution
+
+        # word frequency percentage (occurrences / total (positive|negative) tweets)
+        word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Positive Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot,
+                           total_count=len(pos_tweets.index),
+                           multiplier=100,
+                           y_label="Word Frequency ÷ Tweets (in %)")
+        word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Negative Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot,
+                           total_count=len(neg_tweets.index),
+                           multiplier=100,
+                           y_label="Word Frequency ÷ Tweets (in %)")
+
+        # word frequency percentage (occurrences / total {positive, negative} words)
+        word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Total Words From Positive Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot,
+                           total_count=len(pos_words),
+                           multiplier=100,
+                           y_label="Word Frequency ÷ Total Words (in %)")
+        word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Total Words From Negative Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot,
+                           total_count=len(neg_words),
+                           multiplier=100,
+                           y_label="Word Frequency ÷ Total Words (in %)")
+
+        """
+        # word frequency percentage (occurrences ÷ total unique (positive|negative) words)
+        word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Total Words From Positive Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot,
+                           total_count=len(pos_words_unique),
+                           multiplier=100,
+                           y_label="Word Frequency ÷ Total Words (in %)")
+        word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Total Words From Negative Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot,
+                           total_count=len(neg_words_unique),
+                           multiplier=100,
+                           y_label="Word Frequency ÷ Total Words (in %)")
+        """
+
+        # endregion
 
     def visualize_train_data(self):
         self.__visualize_data(self.train, "Train")
