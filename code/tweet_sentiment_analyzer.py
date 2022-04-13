@@ -25,6 +25,9 @@ cwd = os.getcwd()
 data_path = f"{cwd}/data"
 cleaned_data_path = f"{data_path}/cleaned"
 
+# plots
+plot_path = f"{cwd}/plots"
+
 # endregion
 
 # always show all columns and rows on a panda's DataFrame
@@ -268,6 +271,7 @@ class TweetSentimentAnalyzer:
 
     def __visualize_data(self, data: DataFrame, title_prefix: str):
         num_words_to_plot = 20
+        current_plot_path = f"{plot_path}/{title_prefix.lower()}"
 
         def merge_lists(df: DataFrame):
             concatenated = []
@@ -305,12 +309,15 @@ class TweetSentimentAnalyzer:
         ratio_pie_chart([len(pos_tweets), len(neg_tweets)],
                         title_prefix=title_prefix,
                         title="Label Ratio",
-                        labels=["Positive", "Negative"])
+                        labels=["Positive", "Negative"],
+                        save_path=f"{current_plot_path}/1-class_distribution_pie_chart")
 
         word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Negative Labeled Tweets",
-                           num_words_to_plot=num_words_to_plot)
+                           num_words_to_plot=num_words_to_plot,
+                           save_path=f"{current_plot_path}/2-word_freq-neg_tweets")
         word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Positive Labeled Tweets",
-                           num_words_to_plot=num_words_to_plot)
+                           num_words_to_plot=num_words_to_plot,
+                           save_path=f"{current_plot_path}/3-word_freq-pos_tweets")
 
         # region for better comparison of word frequencies due to imbalanced class distribution
 
@@ -319,24 +326,28 @@ class TweetSentimentAnalyzer:
                            num_words_to_plot=num_words_to_plot,
                            total_count=len(pos_tweets.index),
                            multiplier=100,
-                           y_label="Word Frequency ÷ Tweets (in %)")
+                           y_label="Word Frequency ÷ Tweets (in %)",
+                           save_path=f"{current_plot_path}/4-word_freq_with_tweets-pos_tweets")
         word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Negative Labeled Tweets",
                            num_words_to_plot=num_words_to_plot,
                            total_count=len(neg_tweets.index),
                            multiplier=100,
-                           y_label="Word Frequency ÷ Tweets (in %)")
+                           y_label="Word Frequency ÷ Tweets (in %)",
+                           save_path=f"{current_plot_path}/5-word_freq_with_tweets-neg_tweets")
 
         # word frequency percentage (occurrences / total {positive, negative} words)
         word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Total Words From Positive Labeled Tweets",
                            num_words_to_plot=num_words_to_plot,
                            total_count=len(pos_words),
                            multiplier=100,
-                           y_label="Word Frequency ÷ Total Words (in %)")
+                           y_label="Word Frequency ÷ Total Words (in %)",
+                           save_path=f"{current_plot_path}/6-word_freq_with_words-pos_tweets")
         word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Total Words From Negative Labeled Tweets",
                            num_words_to_plot=num_words_to_plot,
                            total_count=len(neg_words),
                            multiplier=100,
-                           y_label="Word Frequency ÷ Total Words (in %)")
+                           y_label="Word Frequency ÷ Total Words (in %)",
+                           save_path=f"{current_plot_path}/7-word_freq_with_words-neg_tweets")
 
         """
         # word frequency percentage (occurrences ÷ total unique (positive|negative) words)

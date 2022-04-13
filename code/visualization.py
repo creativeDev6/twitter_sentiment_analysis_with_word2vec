@@ -1,13 +1,65 @@
+import logging
+import os
+import warnings
+
 import matplotlib.pyplot as plt
 import nltk
 import seaborn as sns
 from pandas import DataFrame
 
+# region variables
+
 grid_color = "#EEEEEE"
 number_format = ".2f"
+# plots
+enable_showing = True
+enable_saving = True
+# saving with plt.savefig() as pdf has the best quality
+#   according to https://stackoverflow.com/a/60085975/964551
+plot_extension = ".pdf"
+
+# endregion
 
 
-def ratio_pie_chart(count_list, *, title_prefix, title, labels):
+def show_plot(plot):
+    """
+    Wrapper function for showing plots.
+    :param plot:
+    :return:
+    """
+    if enable_showing:
+        plot.show()
+
+
+def save_plot(save_path: str):
+    """
+    Wrapper function for saving plots.
+    :param save_path:
+    :return:
+    """
+    if enable_saving and save_path:
+        folder = os.path.dirname(save_path)
+        filename = f"{save_path}{plot_extension}"
+
+        logging.info(f"folder: {folder}")
+        logging.info(f"filename: {filename}")
+
+        try:
+            os.makedirs(folder, exist_ok=True)
+        except OSError as error:
+            print(f"Directory {folder} cannot be created. See {error}")
+
+        try:
+            if os.path.exists(filename):
+                warnings.warn(f"Plot: '{filename}' exists. Plot will be overwritten.")
+            plt.savefig(filename)
+        except OSError as error:
+            print(f"Plot '{filename}' cannot be saved. See {error}")
+    else:
+        logging.debug("No plot will be saved.")
+
+
+def ratio_pie_chart(count_list, *, title_prefix, title, labels, save_path: str = None):
     # source: https://stackoverflow.com/a/6170354
     def make_autopct(values):
         def my_autopct(pct):
@@ -29,7 +81,8 @@ def ratio_pie_chart(count_list, *, title_prefix, title, labels):
                 # "linestyle": "dashed",
                 "antialiased": True,
             })
-    plt.show()
+    save_plot(save_path)
+    show_plot(plt)
 
 
 def adding_values_on_top(ax: sns.barplot, format_value: str):
@@ -60,7 +113,8 @@ def adding_values_on_top(ax: sns.barplot, format_value: str):
 
 def word_freq_bar_plot(words: DataFrame, *, title_prefix="", title="", num_words_to_plot=10,
                        total_count=1, multiplier=1,
-                       y_label="Word Frequency", x_label="Words"):
+                       y_label="Word Frequency", x_label="Words",
+                       save_path: str = None):
     # Format the text with number or decimal depending on total_count to better differentiate between values
     format_value = number_format if total_count > 1 else "n"
     # unnesting list
@@ -84,11 +138,12 @@ def word_freq_bar_plot(words: DataFrame, *, title_prefix="", title="", num_words
 
     adding_values_on_top(ax, format_value)
 
-    plt.show()
+    save_plot(save_path)
+    show_plot(plt)
 
 
 # show F1-scores for (un)specific models + label 0/1 average='binary' + average='weighted'
-def grouped_bar_chart(d, y, title):
+def grouped_bar_chart(d, y, title, save_path: str = None):
     # grouping on average_label
     ax = sns.barplot(x="tweet_count", y=y, hue="label", data=d)
     plt.title(f"{title}")
@@ -103,7 +158,8 @@ def grouped_bar_chart(d, y, title):
     adding_values_on_top(ax, number_format)
 
     # plt.savefig("barplot_Seaborn_barplot_Python.png")
-    plt.show()
+    save_plot(save_path)
+    show_plot(plt)
 
 
 def raw_score(d):
