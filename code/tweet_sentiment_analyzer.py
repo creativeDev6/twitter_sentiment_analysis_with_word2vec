@@ -381,7 +381,7 @@ class TweetSentimentAnalyzer:
             print(f"New model: will be trained.")
             # todo remove force_retrain
             self.model = load_or_create_model(self.method, self.train[self.column.tidy_tweet], tweet_count,
-                                              force_retrain=True)
+                                              force_retrain=force_retrain)
             # todo remove
             print(f"****** len(train): {len(self.train)}")
             # print(f"****** vocabulary: {self.model.wv.index_to_key}")
@@ -414,13 +414,18 @@ class TweetSentimentAnalyzer:
     def test_classifier(self):
         return self.classifier.test_classifier()
 
-    @staticmethod
-    def visualize_score(scores: [], title=None):
+    def visualize_score(self, scores: [], title_prefix=None, title=None):
+        if self.is_pretrained_model:
+            filename = "9-evaluation-unspecific_w2v_models"
+        else:
+            filename = "8-evaluation-specific_w2v_models"
+
+        current_plot_path = f"{plot_path}/{title_prefix.lower()}/{filename}"
         # score_data = namedtuple("scoreData", "tweet_count label f1 precision recall mcc")
         scores_data = DataFrame(data=scores)
         # y="mcc" can also be used
         # see https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html
-        grouped_bar_chart(scores_data, y="f1", title=title)
+        grouped_bar_chart(scores_data, y="f1", title=title, title_prefix=title_prefix, save_path=current_plot_path)
 
     # region encapsulate multiple operations
 
@@ -441,13 +446,13 @@ class TweetSentimentAnalyzer:
                 self.train_model(pretrained_model=pretrained_model)
                 self.train_classifier(tweet_count)
                 scores.extend(test_func())
-            self.visualize_score(scores, title=f"{use_set.value}: {pretrained_model_name}")
+            self.visualize_score(scores, title_prefix=use_set.value, title=f"{pretrained_model_name}")
         else:
             for tweet_count in tweet_counts:
                 self.train_model(tweet_count=tweet_count)
                 self.train_classifier(tweet_count)
                 scores.extend(test_func())
-            self.visualize_score(scores, title=f"{use_set.value}: word2vec Specific Models")
+            self.visualize_score(scores, title_prefix=use_set.value, title=f"word2vec Specific Models")
 
     def validate_specific_models_by(self, tweet_counts: [int]):
         self.__test_model(TestSet.VALIDATION, tweet_counts=tweet_counts)
