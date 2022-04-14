@@ -1,8 +1,9 @@
 import logging
 import os
-from tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
 from time import perf_counter
+
 from helper import show_used_time
+from tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
 
 cwd = os.getcwd()
 data_path = f"{cwd}/data"
@@ -28,6 +29,7 @@ def run():
     tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7, shuffle=True,
                                     random_state=random_state)
 
+    # tsa.visualize_data()
     # tsa.visualize_train_data()
     # tsa.visualize_validation_data()
     ## tsa.visualize_test_data()

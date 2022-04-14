@@ -147,8 +147,8 @@ class TweetSentimentAnalyzer:
         # display rows (tweets) with no words
         counter = 0
         for row in df.itertuples():
-            # fixme tweets with a few words are also removed (833 rows removed)
-            #  Pandas(Index=28324, id=28325, label=0, tweet='#cute   how are you? see you? -  ', tidy_tweet=[], hashtags=['cute'])
+            # fixme tweets with a few words are also removed (833 rows removed) Pandas(Index=28324, id=28325,
+            #  label=0, tweet='#cute   how are you? see you? -  ', tidy_tweet=[], hashtags=['cute'])
             if len(getattr(row, self.column.tidy_tweet)) == 0:
                 print(f"No words in row. Row will be removed: {row}")
                 counter += 1
@@ -364,6 +364,9 @@ class TweetSentimentAnalyzer:
         """
 
         # endregion
+
+    def visualize_data(self):
+        self.__visualize_data(self.data, "Data")
 
     def visualize_train_data(self):
         self.__visualize_data(self.train, "Train")
