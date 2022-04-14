@@ -99,7 +99,7 @@ class TweetSentimentAnalyzer:
         """
         self.__remove_duplicates(df)
 
-        # drop all other except essential columns (tweet and label)
+        # drop all other except essential columns (id, tweet and label)
         df = df[self.essential_columns]
 
         # remove twitter handles (@user)
@@ -149,7 +149,7 @@ class TweetSentimentAnalyzer:
         for row in df.itertuples():
             # fixme tweets with a few words are also removed (833 rows removed)
             #  Pandas(Index=28324, id=28325, label=0, tweet='#cute   how are you? see you? -  ', tidy_tweet=[], hashtags=['cute'])
-            if len(row.tidy_tweet) == 0:
+            if len(getattr(row, self.column.tidy_tweet)) == 0:
                 print(f"No words in row. Row will be removed: {row}")
                 counter += 1
         print(f"Removed rows: {counter}")
