@@ -125,16 +125,11 @@ class TweetSentimentAnalyzer:
         #  hashtags might contain important words for deciding the tweet's sentiment)
         df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].str.replace("#", "")
 
-        # todo use other gensim preprocessing functions
-        # gensim.parsing.preprocessing.utils.keep_vocab_item()
-        # gensim.parsing.preprocessing.
-        # todo remove short, stopwords, stem
-        custom_filters = [gensim.parsing.preprocessing.strip_tags,
-                          gensim.parsing.preprocessing.strip_short,
-                          gensim.parsing.preprocessing.remove_stopwords,
-                          gensim.parsing.preprocessing.stem_text]
-        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(
-        # gensim.parsing.preprocessing.preprocess_string, filters=gensim.parsing.preprocessing.DEFAULT_FILTERS)
+        custom_filters = [
+            gensim.parsing.preprocessing.strip_short,
+            gensim.parsing.preprocessing.remove_stopwords,
+            gensim.parsing.preprocessing.stem_text,
+        ]
         df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(
             lambda x: preprocess_string(x, filters=custom_filters))
 
