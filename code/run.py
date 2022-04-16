@@ -52,7 +52,7 @@ def run():
     # tsa.show_test_class_distribution()
 
     tsa.distribute_labels_equally_in_train()
-    tsa.save_preprocessed_data()
+    tsa.save_all_preprocessed_data()
 
     print("*" * 50)
     print("After distribute_labels_equally_in_train()")

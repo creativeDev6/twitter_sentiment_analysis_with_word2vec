@@ -148,7 +148,7 @@ class TweetSentimentAnalyzer:
     def preprocess(self):
         self.__preprocess(self.raw_data)
 
-    def save_preprocessed_data(self):
+    def save_all_preprocessed_data(self):
         if not os.path.exists(cleaned_data_path):
             os.makedirs(cleaned_data_path)
 
