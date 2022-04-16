@@ -42,15 +42,7 @@ class TestSet(Enum):
 
 class TweetSentimentAnalyzer:
     """
-    csv = None
-
-    raw_data = None
-    data = None
-
-    train = None
-    test = None
-
-    method = Method.WORD2VEC
+    Class to compare different word2vec models for sentiment classification on tweets.
     """
 
     def __init__(self, csv, column_names: ColumnNames):
@@ -77,9 +69,11 @@ class TweetSentimentAnalyzer:
     def __remove_duplicates(self, df: DataFrame):
         """
         Removes all duplicates in place except the first occurrence.
+
         :param df:
         :return:
         """
+
         duplicates = get_duplicates(df)
         duplicates_count = len(duplicates.index)
         print("*" * 30)
@@ -96,7 +90,11 @@ class TweetSentimentAnalyzer:
         The preprocessed tweet will be stored in the column "tidy_tweet".
 
         Hashtags (their content) will be stored in the column "hashtags".
+
+        :param df: DataFrame to be preprocessed.
+        :return:
         """
+
         self.__remove_duplicates(df)
 
         # drop all other except essential columns (id, tweet and label)
@@ -105,26 +103,22 @@ class TweetSentimentAnalyzer:
         # remove twitter handles (@user)
         df.loc[:, self.column.tidy_tweet] = df[self.column.tweet].apply(remove_pattern, args=(r"@\w*",))
 
-        # todo remove &amp; Unicode, e.g. 
         df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(remove_html_entities)
 
         # remove special characters, numbers, punctuations (everything except letters and #)
-        # todo what about ', like in don't, haven't?
+        # contradictions (e.g. I'm, didn't, don't or haven't) will be removed because they often contain only stopwords
+        # and will later on be removed anyway
         df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].str.replace("[^a-zA-Z#]", " ")
-        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(remove_unicode)
 
         # extract hashtags into separate column
         df.loc[:, self.column.hashtags] = df[self.column.tidy_tweet].apply(hashtag_extract)
 
-        # remove hashtags todo IMPORTANT recheck below comment after wrangling data (does it still worsen the
-        #  result?) Info: the F1-score was worse than leaving them (0.38 to 0.48) when compared with all the training
-        #  tweets. Also this lead to more rows having zero word tokens (94 to 4) and therefore removing them in the
-        #  last step of this function (remove words with no word tokens) df.loc[:, self.column.tidy_tweet] = df[
-        #  self.column.tidy_tweet].str.replace(r"#(\w+)", " ")
+        # remove hashtags
         #  remove only hashtags '#' (otherwise 833 rows will be removed and
         #  hashtags might contain important words for deciding the tweet's sentiment)
         df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].str.replace("#", "")
 
+        # use gensim for preprocessing
         custom_filters = [
             gensim.parsing.preprocessing.strip_short,
             gensim.parsing.preprocessing.remove_stopwords,
@@ -133,21 +127,13 @@ class TweetSentimentAnalyzer:
         df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(
             lambda x: preprocess_string(x, filters=custom_filters))
 
-        # use gensim for preprocessing
-        # simple preprocess without stemming
-        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(gensim.utils.simple_preprocess)
-        # preprocess with stemming
-        # df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(preprocess_string)
-
         # display rows (tweets) with no words
         counter = 0
         for row in df.itertuples():
-            # fixme tweets with a few words are also removed (833 rows removed) Pandas(Index=28324, id=28325,
-            #  label=0, tweet='#cute   how are you? see you? -  ', tidy_tweet=[], hashtags=['cute'])
             if len(getattr(row, self.column.tidy_tweet)) == 0:
                 print(f"No words in row. Row will be removed: {row}")
                 counter += 1
-        print(f"Removed rows: {counter}")
+        print(f"Total removed rows: {counter}")
         # remove rows with no word tokens after preprocessing
         # Info: prevents having to calculate the document_vector for no words in tweet or rather to define a value for
         # empty tweets
@@ -155,7 +141,7 @@ class TweetSentimentAnalyzer:
         df = df.reset_index(drop=True)
 
         self.data = df
-        logging.info(f"Column headers: {self.data.columns.values}")
+        logging.info(f"Column headers after preprocessing: {self.data.columns.values}")
 
         return df
 
@@ -166,12 +152,13 @@ class TweetSentimentAnalyzer:
         if not os.path.exists(cleaned_data_path):
             os.makedirs(cleaned_data_path)
 
-        write_index = False
+        # by default (index = True), the index of a df is written as the first column
+        write_row_names = False
 
-        self.data.to_csv(f"{cleaned_data_path}/data.csv", index=write_index)
-        self.train.to_csv(f"{cleaned_data_path}/train.csv", index=write_index)
-        self.validation.to_csv(f"{cleaned_data_path}/validation.csv", index=write_index)
-        self.test.to_csv(f"{cleaned_data_path}/test.csv", index=write_index)
+        self.data.to_csv(f"{cleaned_data_path}/data.csv", index=write_row_names)
+        self.train.to_csv(f"{cleaned_data_path}/train.csv", index=write_row_names)
+        self.validation.to_csv(f"{cleaned_data_path}/validation.csv", index=write_row_names)
+        self.test.to_csv(f"{cleaned_data_path}/test.csv", index=write_row_names)
 
     def load_preprocessed_data(self):
         try:
@@ -192,7 +179,6 @@ class TweetSentimentAnalyzer:
                 f"Sizes: {train_size} (train), {validation_size} (validation) and {test_size} (test) should add up to "
                 f"1.0")
 
-        # train_size = 1 - (validation_size + test_size)
         relative_test_size = test_size / (validation_size + test_size)
 
         self.train, temp_validation = train_test_split(self.data, train_size=train_size, shuffle=shuffle,
@@ -225,14 +211,13 @@ class TweetSentimentAnalyzer:
             without_duplicates_minority_count = len(without_duplicates_minority)
             duplicates_count = count_duplicates(current_train, self.essential_columns)
             try:
-                # ratio = tweet_count / duplicates_count
                 ratio = duplicates_count / tweet_count
             except ZeroDivisionError:
                 ratio = 0
             print(f"Total tweets: {tweet_count}")
             print(f"Distribution: {duplicates_count} : {tweet_count} (duplicates : tweet_count)")
             print(f"Ratio: 1 : {ratio:.2f}")
-            print(f"No duplicates: {without_duplicates_minority_count} (in minority class 1)")
+            print(f"Total unique tweets (no duplicates): {without_duplicates_minority_count} (in minority class 1)")
             print("-" * 30)
 
     def distribute_labels_equally_in_train(self):
@@ -307,12 +292,12 @@ class TweetSentimentAnalyzer:
                         labels=["Positive", "Negative"],
                         save_path=f"{current_plot_path}/1-class_distribution_pie_chart")
 
-        word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Negative Labeled Tweets",
-                           num_words_to_plot=num_words_to_plot,
-                           save_path=f"{current_plot_path}/2-word_freq-neg_tweets")
         word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Positive Labeled Tweets",
                            num_words_to_plot=num_words_to_plot,
-                           save_path=f"{current_plot_path}/3-word_freq-pos_tweets")
+                           save_path=f"{current_plot_path}/2-word_freq-pos_tweets")
+        word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Negative Labeled Tweets",
+                           num_words_to_plot=num_words_to_plot,
+                           save_path=f"{current_plot_path}/3-word_freq-neg_tweets")
 
         # region for better comparison of word frequencies due to imbalanced class distribution
 
@@ -361,21 +346,15 @@ class TweetSentimentAnalyzer:
     def train_model(self, pretrained_model: Word2Vec = None, tweet_count=None, force_retrain=False):
         """ If tweet_count=None then entire train set will be used. """
 
-        if pretrained_model is None:
-            print(f"New model: will be trained.")
-            # todo remove force_retrain
-            self.model = load_or_create_model(self.method, self.train[self.column.tidy_tweet], tweet_count,
-                                              force_retrain=force_retrain)
-            # todo remove
-            print(f"****** len(train): {len(self.train)}")
-            # print(f"****** vocabulary: {self.model.wv.index_to_key}")
-        else:
-            print(f"Pretrained model: '{pretrained_model}' will be used.")
-            # self.model = pretrained_model
+        if pretrained_model:
+            logging.info(f"Pretrained model: '{pretrained_model}' will be used.")
             # set other fields
             self.method = Method.WORD2VEC
-
             self.model = pretrained_model
+        else:
+            logging.info(f"New model: will be trained.")
+            self.model = load_or_create_model(self.method, self.train[self.column.tidy_tweet], tweet_count,
+                                              force_retrain=force_retrain)
 
     def load_pretrained_model(self):
         self.is_pretrained_model = True
@@ -418,12 +397,14 @@ class TweetSentimentAnalyzer:
         """
         Test the specified Word2vec model on the test set. Train Word2vec model according to given tweet_counts (not
         if pretrained_model = True), train classifiers for given tweet_counts and visualizes scores.
+
         :param use_set: TestSet to be used for evaluation.
         :param pretrained_model: Use pretrained model.
         :param tweet_counts: Train different models according to given partitions by tweet_counts.
         :param force_retrain: Will not work if pretrained model is used. Classifiers will always be retrained.
         :return:
         """
+
         test_func = None
         scores = []
 
