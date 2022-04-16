@@ -427,7 +427,17 @@ class TweetSentimentAnalyzer:
 
     # region encapsulate multiple operations
 
-    def __test_model(self, use_set: TestSet = TestSet.VALIDATION, pretrained_model=None, tweet_counts=None):
+    def __test_model(self, use_set: TestSet = TestSet.VALIDATION, pretrained_model=None, tweet_counts: [int] = None,
+                     force_retrain: bool = False):
+        """
+        Test the specified Word2vec model on the test set. Train Word2vec model according to given tweet_counts (not
+        if pretrained_model = True), train classifiers for given tweet_counts and visualizes scores.
+        :param use_set: TestSet to be used for evaluation.
+        :param pretrained_model: Use pretrained model.
+        :param tweet_counts: Train different models according to given partitions by tweet_counts.
+        :param force_retrain: Will not work if pretrained model is used. Classifiers will always be retrained.
+        :return:
+        """
         test_func = None
         scores = []
 
@@ -447,19 +457,19 @@ class TweetSentimentAnalyzer:
             self.visualize_score(scores, title_prefix=use_set.value, title=f"{pretrained_model_name}")
         else:
             for tweet_count in tweet_counts:
-                self.train_model(tweet_count=tweet_count)
+                self.train_model(tweet_count=tweet_count, force_retrain=force_retrain)
                 self.train_classifier(tweet_count)
                 scores.extend(test_func())
             self.visualize_score(scores, title_prefix=use_set.value, title=f"word2vec Specific Models")
 
-    def validate_specific_models_by(self, tweet_counts: [int]):
-        self.__test_model(TestSet.VALIDATION, tweet_counts=tweet_counts)
+    def validate_specific_models_by(self, tweet_counts: [int], force_retrain: bool = False):
+        self.__test_model(TestSet.VALIDATION, tweet_counts=tweet_counts, force_retrain=force_retrain)
 
     def validate_unspecific_pretrained_model(self, tweet_counts: [int]):
         self.__test_model(TestSet.VALIDATION, pretrained_model=self.load_pretrained_model(), tweet_counts=tweet_counts)
 
-    def test_specific_models_by(self, tweet_counts: [int]):
-        self.__test_model(TestSet.TEST, tweet_counts=tweet_counts)
+    def test_specific_models_by(self, tweet_counts: [int], force_retrain: bool = False):
+        self.__test_model(TestSet.TEST, tweet_counts=tweet_counts, force_retrain=force_retrain)
 
     def test_unspecific_pretrained_model(self, tweet_counts: [int]):
         self.__test_model(TestSet.TEST, pretrained_model=self.load_pretrained_model(), tweet_counts=tweet_counts)

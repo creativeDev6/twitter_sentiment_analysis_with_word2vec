@@ -12,11 +12,16 @@ cleaned_data_path = f"{cwd}/data/cleaned"
 # make sure you get this repository's root folder as your cwd
 print(f"Current Working Directory: {cwd}")
 
+# region variables
+
+data_was_cleaned = False
+random_state = 1
+
+force_retrain_w2v_models = False
+
+# endregion
 
 def run():
-    data_was_cleaned = False
-    random_state = 1
-
     if data_was_cleaned:
         tsa = TweetSentimentAnalyzer(f"{cleaned_data_path}/data.csv", ColumnNames())
         tsa.load_preprocessed_data()
@@ -58,11 +63,11 @@ def run():
 
     tsa.show_train_duplicates_distribution(tweet_counts)
 
-    tsa.validate_specific_models_by(tweet_counts)
+    tsa.validate_specific_models_by(tweet_counts, force_retrain=force_retrain_w2v_models)
     # todo save best performing model chosen by validation
     tsa.validate_unspecific_pretrained_model(tweet_counts)
 
-    # tsa.test_specific_models_by(tweet_counts=tweet_counts)
+    # tsa.test_specific_models_by(tweet_counts=tweet_counts, force_retrain=force_retrain_w2v_models)
     # tsa.test_unspecific_pretrained_model()
 
 

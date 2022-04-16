@@ -5,10 +5,10 @@ import warnings
 from enum import Enum
 from time import perf_counter
 
+import gensim.downloader as api
+from gensim.models import Word2Vec, Doc2Vec
 from gensim.models.doc2vec import TaggedDocument
 from pandas import DataFrame
-from gensim.models import Word2Vec, Doc2Vec
-import gensim.downloader as api
 
 from helper import show_used_time
 
@@ -23,6 +23,8 @@ extension = ".model"
 pretrained_model_name = "word2vec-google-news-300"
 
 # model parameters
+# when changing parameters make sure force_retrain_w2v_models is set to True in run.py otherwise model will be loaded
+# from disk without applying model parameters.
 min_count = 1
 window = 2
 vector_size = 300
