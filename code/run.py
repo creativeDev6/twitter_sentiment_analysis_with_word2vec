@@ -17,7 +17,11 @@ print(f"Current Working Directory: {cwd}")
 data_was_cleaned = False
 random_state = 1
 
-force_retrain_w2v_models = False
+force_retrain_w2v_models = True
+
+logging_level = logging.INFO
+logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt="%H:%M:%S", level=logging_level)
+
 
 # endregion
 
@@ -64,7 +68,6 @@ def run():
     tsa.show_train_duplicates_distribution(tweet_counts)
 
     tsa.validate_specific_models_by(tweet_counts, force_retrain=force_retrain_w2v_models)
-    # todo save best performing model chosen by validation
     tsa.validate_unspecific_pretrained_model(tweet_counts)
 
     # tsa.test_specific_models_by(tweet_counts=tweet_counts, force_retrain=force_retrain_w2v_models)
@@ -72,7 +75,6 @@ def run():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt="%H:%M:%S", level=logging.INFO)
     t = perf_counter()
     run()
     show_used_time(t, "run()")
