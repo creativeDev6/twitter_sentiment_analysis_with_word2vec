@@ -61,6 +61,8 @@ class TweetSentimentAnalyzer:
         self.is_pretrained_model = False
         self.classifier: Classifier = None
 
+        self.partition_size = None
+
         self.__read_data(csv)
 
     def __read_data(self, csv):
@@ -187,6 +189,24 @@ class TweetSentimentAnalyzer:
         self.validation, self.test = train_test_split(temp_validation, test_size=relative_test_size, shuffle=shuffle,
                                                       random_state=random_state,
                                                       stratify=temp_validation[self.column.label])
+
+    def get_partition_list_for_train(self, n: int):
+        """
+        Gets a list of partition sizes for training models.
+
+        :param n: Number of partitions to create.
+        :return: Partition list with the total size for each partition.
+        """
+
+        self.partition_size = len(self.train.index) // n
+        print(f"partition_size: {self.partition_size}")
+        print(f"len(train): {len(self.train.index)}")
+        print(f"number of values not used: {len(self.train.index) - (n * self.partition_size)}")
+
+        partition_list = [x * self.partition_size for x in range(1, n + 1)]
+        print(f"partition_list: {partition_list}")
+
+        return partition_list
 
     def __oversample(self, df: DataFrame, ratio=1, random_state=None):
         print(f"Before oversampling: {Counter(df[self.column.label])}")
