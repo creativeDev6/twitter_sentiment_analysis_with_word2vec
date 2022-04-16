@@ -344,20 +344,6 @@ class TweetSentimentAnalyzer:
                            y_label="Word Frequency ÷ Total Words (in %)",
                            save_path=f"{current_plot_path}/7-word_freq_with_words-neg_tweets")
 
-        """
-        # word frequency percentage (occurrences ÷ total unique (positive|negative) words)
-        word_freq_bar_plot(pos_tweets, title_prefix=title_prefix, title="Total Words From Positive Labeled Tweets",
-                           num_words_to_plot=num_words_to_plot,
-                           total_count=len(pos_words_unique),
-                           multiplier=100,
-                           y_label="Word Frequency ÷ Total Words (in %)")
-        word_freq_bar_plot(neg_tweets, title_prefix=title_prefix, title="Total Words From Negative Labeled Tweets",
-                           num_words_to_plot=num_words_to_plot,
-                           total_count=len(neg_words_unique),
-                           multiplier=100,
-                           y_label="Word Frequency ÷ Total Words (in %)")
-        """
-
         # endregion
 
     def visualize_data(self):
