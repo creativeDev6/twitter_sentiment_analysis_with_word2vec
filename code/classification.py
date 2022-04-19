@@ -46,7 +46,8 @@ def vec_for_learning(d2v_model: Doc2Vec, tagged_docs: TaggedDocument, epochs=20)
 
 class Classifier:
     def __init__(self, method: Method, model: Word2Vec, is_pretrained_model: bool, vector_size: int,
-                 train: DataFrame, validation: DataFrame, test: DataFrame, column_names: ColumnNames = ColumnNames()):
+                 train: DataFrame, validation: DataFrame, test: DataFrame,
+                 column_names: ColumnNames = ColumnNames(), random_state=None):
         self.method = method
         self.model = model
         self.is_pretrained_model = is_pretrained_model
@@ -55,6 +56,7 @@ class Classifier:
         self.validation = validation
         self.test = test
         self.column = column_names
+        self.random_state = random_state
 
         self.classifier = None
         self.vectors = None
@@ -96,7 +98,7 @@ class Classifier:
         :return:
         """
         train_vectors = [self.mean_doc_vector(doc) for doc in self.train[self.column.tidy_tweet]]
-        log_reg = LogisticRegression(solver="liblinear", max_iter=100)
+        log_reg = LogisticRegression(solver="liblinear", max_iter=100, random_state=self.random_state)
 
         logging.debug(f"fit() -> len(vectors): {len(train_vectors)}, "
                       f"len(labels): {len(self.train[self.column.label])}, "

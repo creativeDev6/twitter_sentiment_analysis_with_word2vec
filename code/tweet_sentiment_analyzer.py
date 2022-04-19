@@ -45,9 +45,11 @@ class TweetSentimentAnalyzer:
     Class to compare different word2vec models for sentiment classification on tweets.
     """
 
-    def __init__(self, csv, column_names: ColumnNames):
+    def __init__(self, csv, column_names: ColumnNames, random_state=None):
         self.csv = csv
         self.column = column_names
+        self.random_state = random_state
+
         self.essential_columns = [self.column.id, self.column.label, self.column.tweet]
         self.raw_data = None
         self.data = None
@@ -172,8 +174,17 @@ class TweetSentimentAnalyzer:
             print(f"Make sure '{cleaned_data_path}' and cleaned csv files exist")
         logging.info(f"Column headers: {self.data.columns.values}")
 
-    def train_validation_test_split(self, test_size=0.1, validation_size=0.2, train_size=0.7, shuffle: bool = True,
-                                    random_state: int = None):
+    def train_validation_test_split(self, test_size=0.1, validation_size=0.2, train_size=0.7):
+        """
+        Divides data into train, validation and test set.
+        Always stratifying and shuffling on label.
+
+        :param test_size:
+        :param validation_size:
+        :param train_size:
+        :param shuffle:
+        :return:
+        """
         # needs round otherwise raises error, e.g. with default size values sum -> 0.999
         sum_sizes = round(train_size + validation_size + test_size, 2)
         if sum_sizes != 1.0:
@@ -183,11 +194,11 @@ class TweetSentimentAnalyzer:
 
         relative_test_size = test_size / (validation_size + test_size)
 
-        self.train, temp_validation = train_test_split(self.data, train_size=train_size, shuffle=shuffle,
-                                                       random_state=random_state,
+        self.train, temp_validation = train_test_split(self.data, train_size=train_size, shuffle=True,
+                                                       random_state=self.random_state,
                                                        stratify=self.data[self.column.label])
-        self.validation, self.test = train_test_split(temp_validation, test_size=relative_test_size, shuffle=shuffle,
-                                                      random_state=random_state,
+        self.validation, self.test = train_test_split(temp_validation, test_size=relative_test_size, shuffle=True,
+                                                      random_state=self.random_state,
                                                       stratify=temp_validation[self.column.label])
 
     def get_partition_list_for_train(self, n: int):
@@ -208,17 +219,17 @@ class TweetSentimentAnalyzer:
 
         return partition_list
 
-    def __oversample(self, df: DataFrame, ratio=1, random_state=None):
+    def __oversample(self, df: DataFrame, ratio=1):
         print(f"Before oversampling: {Counter(df[self.column.label])}")
-        df_oversampled, labels_oversampled = oversample(df, ratio=ratio, random_state=random_state)
+        df_oversampled, labels_oversampled = oversample(df, ratio=ratio, random_state=self.random_state)
         print(f"After oversampling: {Counter(labels_oversampled)}")
         return df_oversampled
 
-    def oversample_validation(self, ratio=1, random_state=None):
-        self.validation = self.__oversample(self.validation, ratio=ratio, random_state=random_state)
+    def oversample_validation(self, ratio=1):
+        self.validation = self.__oversample(self.validation, ratio=ratio)
 
-    def oversample_train(self, ratio=1, random_state=None):
-        self.train = self.__oversample(self.train, ratio=ratio, random_state=random_state)
+    def oversample_train(self, ratio=1):
+        self.train = self.__oversample(self.train, ratio=ratio)
 
     def show_train_duplicates_distribution(self, tweet_counts: [int]):
         print("*" * 30)
@@ -388,7 +399,8 @@ class TweetSentimentAnalyzer:
                                      self.train.iloc[:tweet_count],
                                      self.validation,
                                      self.test,
-                                     self.column)
+                                     self.column,
+                                     random_state=self.random_state)
         self.classifier.fit()
 
     def validate_classifier(self):

@@ -27,23 +27,22 @@ logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt="
 
 def run():
     if data_was_cleaned:
-        tsa = TweetSentimentAnalyzer(f"{cleaned_data_path}/data.csv", ColumnNames())
+        tsa = TweetSentimentAnalyzer(f"{cleaned_data_path}/data.csv", ColumnNames(), random_state=random_state)
         tsa.load_preprocessed_data()
     else:
-        tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames())
+        tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames(), random_state=random_state)
         tsa.preprocess()
 
     tsa.show_data_class_distribution()
 
-    tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7, shuffle=True,
-                                    random_state=random_state)
+    tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7)
 
     # tsa.visualize_data()
     # tsa.visualize_train_data()
     # tsa.visualize_validation_data()
     ## tsa.visualize_test_data()
 
-    tsa.oversample_train(ratio=1, random_state=random_state)
+    tsa.oversample_train(ratio=1)
     tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, len(tsa.train)]
     # tweet_counts = tsa.get_partition_list_for_train(5)
     tsa.show_train_duplicates_distribution(tweet_counts)
