@@ -26,11 +26,10 @@ logging.basicConfig(format="%(levelname)s - %(asctime)s: %(message)s", datefmt="
 # endregion
 
 def run():
+    tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames(), random_state=random_state)
     if data_was_cleaned:
-        tsa = TweetSentimentAnalyzer(f"{cleaned_data_path}/data.csv", ColumnNames(), random_state=random_state)
         tsa.load_preprocessed_data()
     else:
-        tsa = TweetSentimentAnalyzer(f"{data_path}/train_E6oV3lV.csv", ColumnNames(), random_state=random_state)
         tsa.preprocess()
 
     tsa.show_data_class_distribution()
