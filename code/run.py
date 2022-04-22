@@ -41,8 +41,8 @@ def run():
     # tsa.visualize_validation_data()
     ## tsa.visualize_test_data()
 
-    tsa.oversample_train(ratio=1)
-    tweet_counts = [100, 1_000, 10_000, 20_000, 30_000, len(tsa.train)]
+    tsa.oversample_train(ratio=0.3)
+    tweet_counts = [100, 1_000, 10_000, 20_000, len(tsa.train)]
     # tweet_counts = tsa.get_partition_list_for_train(5)
     tsa.show_train_duplicates_distribution(tweet_counts)
 
