@@ -33,6 +33,8 @@ plot_path = f"{cwd}/plots"
 # always show all columns and rows on a panda's DataFrame
 # pandas.options.display.max_rows = None
 pandas.options.display.max_columns = None
+# show entire column width
+pandas.options.display.max_colwidth = None
 
 
 class TestSet(Enum):
