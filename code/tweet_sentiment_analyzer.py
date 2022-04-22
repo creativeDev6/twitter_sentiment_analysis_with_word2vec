@@ -14,7 +14,7 @@ from sklearn.model_selection import train_test_split
 from classification import Classifier
 from code.data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
 from model import Method, load_or_create_model, load_pretrained_model
-from preprocessing import remove_pattern, remove_html_entities, hashtag_extract
+from preprocessing import remove_usernames, remove_html_entities, remove_tags, hashtag_extract
 from visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart
 
 # region variables
@@ -104,15 +104,15 @@ class TweetSentimentAnalyzer:
         # drop all other except essential columns (id, tweet and label)
         df = df[self.essential_columns]
 
-        # remove twitter handles (@user)
-        df.loc[:, self.column.tidy_tweet] = df[self.column.tweet].apply(remove_pattern, args=(r"@\w*",))
-
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tweet].apply(remove_usernames)
+        # this is needed because otherwise, e.g. '&amp;' will become 'amp' in the str.replace step (same for tags)
         df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(remove_html_entities)
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].apply(remove_tags)
 
         # remove special characters, numbers, punctuations (everything except letters and #)
         # contradictions (e.g. I'm, didn't, don't or haven't) will be removed because they often contain only stopwords
         # and will later on be removed anyway
-        df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].str.replace("[^a-zA-Z#]", " ")
+        df.loc[:, self.column.tidy_tweet] = df[self.column.tidy_tweet].str.replace(r"[^a-zA-Z#]+", " ")
 
         # extract hashtags into separate column
         df.loc[:, self.column.hashtags] = df[self.column.tidy_tweet].apply(hashtag_extract)
