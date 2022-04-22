@@ -15,7 +15,7 @@ from classification import Classifier
 from code.data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
 from model import Method, load_or_create_model, load_pretrained_model
 from preprocessing import remove_usernames, remove_html_entities, remove_tags, hashtag_extract
-from visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart
+from visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart, bar_chart
 
 # region variables
 
@@ -412,17 +412,29 @@ class TweetSentimentAnalyzer:
         return self.classifier.test_classifier()
 
     def visualize_score(self, scores: [], title_prefix=None, title=None):
-        if self.is_pretrained_model:
-            filename = "9-evaluation-unspecific_w2v_models"
-        else:
-            filename = "8-evaluation-specific_w2v_models"
+        x_label = "Tweet_Count"
 
-        current_plot_path = f"{plot_path}/{title_prefix.lower()}/{filename}"
+        def get_mcc_scores(df: DataFrame):
+            mcc_columns = ["tweet_count", "mcc"]
+            df = df[mcc_columns]
+            return df.drop_duplicates(subset=mcc_columns)
+
+        if self.is_pretrained_model:
+            f1_filename = "10-evaluation_f1-unspecific_w2v_models"
+            mcc_filename = "11-evaluation_mcc-unspecific_w2v_models"
+        else:
+            f1_filename = "8-evaluation_f1-specific_w2v_models"
+            mcc_filename = "9-evaluation_mcc-specific_w2v_models"
+
+        f1_plot_path = f"{plot_path}/{title_prefix.lower()}/{f1_filename}"
+        mcc_plot_path = f"{plot_path}/{title_prefix.lower()}/{mcc_filename}"
         # score_data = namedtuple("scoreData", "tweet_count label f1 precision recall mcc")
         scores_data = DataFrame(data=scores)
-        # y="mcc" can also be used
-        # see https://scikit-learn.org/stable/modules/generated/sklearn.metrics.matthews_corrcoef.html
-        grouped_bar_chart(scores_data, y="f1", title=title, title_prefix=title_prefix, save_path=current_plot_path)
+        grouped_bar_chart(scores_data, y="f1", title=title, x_label=x_label, y_label="F1-Score",
+                          title_prefix=title_prefix, save_path=f1_plot_path)
+        mcc_scores = get_mcc_scores(scores_data)
+        bar_chart(mcc_scores, y="mcc", title=title, x_label=x_label, y_label="MCC",
+                  title_prefix=title_prefix, save_path=mcc_plot_path)
 
     # region encapsulate multiple operations
 

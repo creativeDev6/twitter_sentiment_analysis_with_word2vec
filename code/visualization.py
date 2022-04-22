@@ -143,12 +143,12 @@ def word_freq_bar_plot(words: DataFrame, *, title_prefix="", title="", num_words
 
 
 # show F1-scores for (un)specific models + label 0/1 average='binary' + average='weighted'
-def grouped_bar_chart(d, y, title, title_prefix="", save_path: str = None):
+def grouped_bar_chart(d, y, title, x_label, y_label, title_prefix="", save_path: str = None):
     # grouping on average_label
     ax = sns.barplot(x="tweet_count", y=y, hue="label", data=d)
     plt.title(f"{title_prefix}: {title}")
-    plt.xlabel("Tweet Count")
-    plt.ylabel(f"{y.upper()}")
+    plt.xlabel(f"{x_label}")
+    plt.ylabel(f"{y_label}")
     plt.legend(loc='lower right', prop={'size': 10}, title="Labels")
 
     # ax.set(xlabel="Tweet Count")
@@ -157,7 +157,20 @@ def grouped_bar_chart(d, y, title, title_prefix="", save_path: str = None):
 
     adding_values_on_top(ax, number_format)
 
-    # plt.savefig("barplot_Seaborn_barplot_Python.png")
+    save_plot(save_path)
+    show_plot(plt)
+
+
+def bar_chart(d, y, title, x_label, y_label, title_prefix="", save_path: str = None):
+    ax = sns.barplot(x="tweet_count", y=y, data=d)
+    plt.title(f"{title_prefix}: {title}")
+    plt.xlabel(f"{x_label}")
+    plt.ylabel(f"{y_label}")
+
+    ax.yaxis.grid(True, color=grid_color)
+
+    adding_values_on_top(ax, number_format)
+
     save_plot(save_path)
     show_plot(plt)
 
