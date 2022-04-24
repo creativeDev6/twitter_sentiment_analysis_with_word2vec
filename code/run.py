@@ -36,41 +36,42 @@ def run():
 
     tsa.train_validation_test_split(test_size=0.1, validation_size=0.2, train_size=0.7)
 
-    # tsa.visualize_data()
-    # tsa.visualize_train_data()
-    # tsa.visualize_validation_data()
-    ## tsa.visualize_test_data()
+    # feel free to comment out (this takes the most time)
+    tsa.visualize_data()
+    tsa.visualize_train_data()
+    tsa.visualize_validation_data()
+    tsa.visualize_test_data()
 
     tsa.oversample_train(ratio=0.3)
     tweet_counts = [100, 1_000, 10_000, 20_000, len(tsa.train)]
     # tweet_counts = tsa.get_partition_list_for_train(5)
-    tsa.show_train_duplicates_distribution(tweet_counts)
+    # tsa.show_train_duplicates_distribution(tweet_counts)
 
     # Test run label distribution
-    print("*" * 50)
-    print("Before distribute_labels_equally_in_train()")
-    print("*" * 50)
-    tsa.show_train_class_distribution(tweet_counts)
-    tsa.show_validation_class_distribution()
+    # print("*" * 50)
+    # print("Before distribute_labels_equally_in_train()")
+    # print("*" * 50)
+    # tsa.show_train_class_distribution(tweet_counts)
+    # tsa.show_validation_class_distribution()
     # tsa.show_test_class_distribution()
 
     tsa.distribute_labels_equally_in_train()
     tsa.save_all_preprocessed_data()
 
-    print("*" * 50)
-    print("After distribute_labels_equally_in_train()")
-    print("*" * 50)
-    tsa.show_train_class_distribution(tweet_counts)
-    tsa.show_validation_class_distribution()
+    # print("*" * 50)
+    # print("After distribute_labels_equally_in_train()")
+    # print("*" * 50)
+    # tsa.show_train_class_distribution(tweet_counts)
+    # tsa.show_validation_class_distribution()
     # tsa.show_test_class_distribution()
 
-    tsa.show_train_duplicates_distribution(tweet_counts)
+    # tsa.show_train_duplicates_distribution(tweet_counts)
 
     tsa.validate_specific_models_by(tweet_counts, force_retrain=force_retrain_w2v_models)
     tsa.validate_unspecific_pretrained_model(tweet_counts)
 
-    # tsa.test_specific_models_by(tweet_counts=tweet_counts, force_retrain=force_retrain_w2v_models)
-    # tsa.test_unspecific_pretrained_model()
+    tsa.test_specific_models_by(tweet_counts=tweet_counts, force_retrain=force_retrain_w2v_models)
+    tsa.test_unspecific_pretrained_model(tweet_counts)
 
 
 if __name__ == '__main__':
