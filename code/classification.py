@@ -45,12 +45,13 @@ def vec_for_learning(d2v_model: Doc2Vec, tagged_docs: TaggedDocument, epochs=20)
 # endregion
 
 class Classifier:
-    def __init__(self, method: Method, model: Word2Vec, is_pretrained_model: bool, vector_size: int,
+    def __init__(self, method: Method, model: Word2Vec, vector_size: int,
                  train: DataFrame, validation: DataFrame, test: DataFrame,
+                 pretrained_model: Word2Vec = None,
                  column_names: ColumnNames = ColumnNames(), random_state=None):
         self.method = method
         self.model = model
-        self.is_pretrained_model = is_pretrained_model
+        self.pretrained_model = pretrained_model
         self.vector_size = vector_size
         self.train = train
         self.validation = validation
@@ -62,15 +63,15 @@ class Classifier:
         self.vectors = None
         self.labels = None
 
-        logging.info(f"Use pretrained model = {is_pretrained_model}")
+        logging.info(f"Use pretrained model = {pretrained_model}")
 
     def mean_doc_vector(self, tokens):
         doc_vector = np.zeros(self.vector_size)
         count = 0
         words_not_in_vocab = []
 
-        if self.is_pretrained_model:
-            w2v_model = self.model
+        if self.pretrained_model:
+            w2v_model = self.pretrained_model
         else:
             w2v_model = self.model.wv
 

@@ -62,7 +62,7 @@ class TweetSentimentAnalyzer:
 
         self.method: Method = Method.WORD2VEC
         self.model: Word2Vec = None
-        self.is_pretrained_model = False
+        self.pretrained_model = None
         self.classifier: Classifier = None
 
         self.partition_size = None
@@ -390,17 +390,20 @@ class TweetSentimentAnalyzer:
                                               force_retrain=force_retrain)
 
     def load_pretrained_model(self):
-        self.is_pretrained_model = True
-        return load_pretrained_model()
+        if self.pretrained_model:
+            return self.pretrained_model
+        self.pretrained_model = load_pretrained_model()
+        return self.pretrained_model
 
-    def train_classifier(self, tweet_count: int = None):
+    def train_classifier(self, tweet_count: int = None, pretrained_model=None):
         if tweet_count is None:
             tweet_count = len(self.train)
 
-        self.classifier = Classifier(self.method, self.model, self.is_pretrained_model, self.model.vector_size,
+        self.classifier = Classifier(self.method, self.model, self.model.vector_size,
                                      self.train.iloc[:tweet_count],
                                      self.validation,
                                      self.test,
+                                     pretrained_model,
                                      self.column,
                                      random_state=self.random_state)
         self.classifier.fit()
@@ -411,7 +414,8 @@ class TweetSentimentAnalyzer:
     def test_classifier(self):
         return self.classifier.test_classifier()
 
-    def visualize_score(self, scores: [], title_prefix=None, title=None):
+    @staticmethod
+    def visualize_score(scores: [], title_prefix=None, title=None, is_pretrained_model: bool = False):
         x_label = "Tweet_Count"
 
         def get_mcc_scores(df: DataFrame):
@@ -419,7 +423,7 @@ class TweetSentimentAnalyzer:
             df = df[mcc_columns]
             return df.drop_duplicates(subset=mcc_columns)
 
-        if self.is_pretrained_model:
+        if is_pretrained_model:
             f1_filename = "10-evaluation_f1-unspecific_w2v_models"
             mcc_filename = "11-evaluation_mcc-unspecific_w2v_models"
         else:
@@ -465,9 +469,10 @@ class TweetSentimentAnalyzer:
             from model import pretrained_model_name
             for tweet_count in tweet_counts:
                 self.train_model(pretrained_model=pretrained_model)
-                self.train_classifier(tweet_count)
+                self.train_classifier(tweet_count, pretrained_model=pretrained_model)
                 scores.extend(test_func())
-            self.visualize_score(scores, title_prefix=use_set.value, title=f"{pretrained_model_name}")
+            self.visualize_score(scores, title_prefix=use_set.value, title=f"{pretrained_model_name}",
+                                 is_pretrained_model=True)
         else:
             for tweet_count in tweet_counts:
                 self.train_model(tweet_count=tweet_count, force_retrain=force_retrain)
