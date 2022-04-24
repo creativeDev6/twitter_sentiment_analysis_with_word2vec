@@ -9,7 +9,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, precision_score, recall_score, matthews_corrcoef
 
 from code.data import ColumnNames
-from model import Method
+from code.model import Method
 
 
 # region doc2vec functions

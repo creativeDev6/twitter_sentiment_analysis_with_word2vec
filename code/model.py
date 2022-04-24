@@ -10,7 +10,7 @@ from gensim.models import Word2Vec, Doc2Vec
 from gensim.models.doc2vec import TaggedDocument
 from pandas import DataFrame
 
-from helper import show_used_time
+from code.helper import show_used_time
 
 # region variables
 
