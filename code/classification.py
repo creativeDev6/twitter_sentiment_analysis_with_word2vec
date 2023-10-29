@@ -8,8 +8,8 @@ from pandas import DataFrame
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import f1_score, precision_score, recall_score, matthews_corrcoef
 
-from code.data import ColumnNames
-from code.model import Method
+from data import ColumnNames
+from model import Method
 
 
 # region doc2vec functions

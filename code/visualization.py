@@ -21,6 +21,18 @@ plot_extension = ".pdf"
 # endregion
 
 
+def enable_interactive_mode_for_plots(state: bool):
+    if state:
+        plt.ion()
+    else:
+        plt.ioff()
+
+
+# prevents waiting for plot window to be closed to continue program execution
+# you might set it to False to see the plot window in real time
+enable_interactive_mode_for_plots(True)
+
+
 def show_plot(plot):
     """
     Wrapper function for showing plots.

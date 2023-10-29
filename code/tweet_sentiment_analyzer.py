@@ -11,11 +11,11 @@ from gensim.parsing import preprocess_string
 from pandas import DataFrame
 from sklearn.model_selection import train_test_split
 
-from code.classification import Classifier
-from code.data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
-from code.model import Method, load_or_create_model, load_pretrained_model
-from code.preprocessing import remove_usernames, remove_html_entities, remove_tags, hashtag_extract
-from code.visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart, bar_chart
+from classification import Classifier
+from data import ColumnNames, oversample, distribute_equally, get_duplicates, count_duplicates
+from model import Method, load_or_create_model, load_pretrained_model
+from preprocessing import remove_usernames, remove_html_entities, remove_tags, hashtag_extract
+from visualization import ratio_pie_chart, word_freq_bar_plot, grouped_bar_chart, bar_chart
 
 # region variables
 

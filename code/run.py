@@ -2,8 +2,8 @@ import logging
 import os
 from time import perf_counter
 
-from code.helper import show_used_time
-from code.tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
+from helper import show_used_time
+from tweet_sentiment_analyzer import TweetSentimentAnalyzer, ColumnNames
 
 cwd = os.getcwd()
 data_path = f"{cwd}/data"
