@@ -44,11 +44,11 @@ pipenv install
 
 Program structure:
 
-![program structure](program_structure.png)
+![program_structure](https://github.com/creativeDev6/twitter_sentiment_analysis_with_word2vec/assets/15360459/c9583149-fc6a-4b72-94d3-58b73ae37beb)
 
 The program will perform the following operations (in yellow or blue) on the data (in grey):
 
-![program flow](program_flow.png)
+![program_flow](https://github.com/creativeDev6/twitter_sentiment_analysis_with_word2vec/assets/15360459/043d4a48-63f1-4558-bb6a-c6221f685357)
 
 Visualizations are also created to summarize the results. Generation of all models and visualizations will take around 5 min (depending on your hardware).
 Afterwards the following additional file structure is generated:
