@@ -142,5 +142,10 @@ cython_debug/
 # JetBrains
 .idea/
 
+# VS Code
+.vscode
+
 # twitter sentiment analysis with word2vec project
+/data/cleaned/
 /models/
+/plots/
