@@ -14,6 +14,7 @@ The domain-dependent (marked as `specific` in the filename) word2vec model train
 
 The data is taken from https://github.com/prateekjoshi565/twitter_sentiment_analysis and is originally from a competition about TSA (https://datahack.analyticsvidhya.com/contest/practice-problem-twitter-sentiment-analysis/).
 
+However, you are not limited to using these datasets. Feel free to use your own datasets!
 ## Getting Started
 
 ### Installing
@@ -44,16 +45,18 @@ pipenv install
 
 Program structure:
 
-![program_structure](https://github.com/creativeDev6/twitter_sentiment_analysis_with_word2vec/assets/15360459/c9583149-fc6a-4b72-94d3-58b73ae37beb)
+![program_structure](https://github.com/creativeDev6/twitter_sentiment_analysis_with_word2vec/assets/15360459/fd4329d1-ef42-42bc-b03f-f59fe3c72b79)
+
 
 The program will perform the following operations (in yellow or blue) on the data (in grey):
 
-![program_flow](https://github.com/creativeDev6/twitter_sentiment_analysis_with_word2vec/assets/15360459/043d4a48-63f1-4558-bb6a-c6221f685357)
+![program_flow](https://github.com/creativeDev6/twitter_sentiment_analysis_with_word2vec/assets/15360459/e2694a1b-d653-4eba-8e0a-9a16d6a28e35)
+
 
 It will also generate visualisations to summarise the results. The generation of all models and visualisations will take about 5 min (depending on your hardware).
 Afterwards you will see the following additional file structure:
 
-```sh
+```
 ./
 ├── data
 │   └── cleaned
