@@ -1,18 +1,18 @@
 # Twitter Sentiment Analysis With Word2Vec
 
-A twitter sentiment analysis (TSA) project to show the effect of different training sizes on word2vec models.
+A Twitter Sentiment Analysis (TSA) project to show the effect of different training sizes on word2vec models.
 
 This repository is based on the following two experiments:
 
 1. Comparison between different sizes (number of tweets trained) of a self-trained word2vec model:
 The word2vec models are trained on a predefined number of tweets and then compared to each other.
 
-2. Comparison between a specific word2vec model trained on the tweets themselves and a pretrained word2vec model ([word2vec-google-news-300](https://code.google.com/archive/p/word2vec/)):
-The specific word2vec model trained with the largest number of tweets (from experiment 1) is compared with the general pretrained word2vec model.
+2. Comparison between a specific word2vec model trained on the tweets themselves and a pre-trained word2vec model ([word2vec-google-news-300](https://code.google.com/archive/p/word2vec/)):
+The specific word2vec model trained on the largest number of tweets (from Experiment 1) is compared to the general pre-trained word2vec model.
 
 ## Data
 
-The data is from https://github.com/prateekjoshi565/twitter_sentiment_analysis and is originally from a contest regarding TSA (https://datahack.analyticsvidhya.com/contest/practice-problem-twitter-sentiment-analysis/).
+The data is taken from https://github.com/prateekjoshi565/twitter_sentiment_analysis and is originally from a competition about TSA (https://datahack.analyticsvidhya.com/contest/practice-problem-twitter-sentiment-analysis/).
 
 ## Getting Started
 
@@ -24,8 +24,8 @@ Use
 pip -r requirements.txt
 ```
 
-If it does not work, you will need the following dependencies:
-- Python 3.8 (You can use [Simple Python version management (pyenv)](https://github.com/pyenv/pyenv) to easily manage different versions)
+If this does not work, you will need the following dependencies:
+- Python 3.8 (you can use [Simple Python version management (pyenv)](https://github.com/pyenv/pyenv) to easily manage different versions)
 - [Python Development Workflow for Humans (Pipenv)](https://pipenv.pypa.io)
 
 and use
@@ -38,7 +38,7 @@ pipenv install
 
 ### Executing program
 
-- `python code/run.py` (feel free to comment out parts before executing).
+- `python code/run.py` (feel free to comment out parts before running).
 
 ---
 
@@ -50,8 +50,8 @@ The program will perform the following operations (in yellow or blue) on the dat
 
 ![program_flow](https://github.com/creativeDev6/twitter_sentiment_analysis_with_word2vec/assets/15360459/043d4a48-63f1-4558-bb6a-c6221f685357)
 
-Visualizations are also created to summarize the results. Generation of all models and visualizations will take around 5 min (depending on your hardware).
-Afterwards the following additional file structure is generated:
+It will also generate visualisations to summarise the results. The generation of all models and visualisations will take about 5 min (depending on your hardware).
+Afterwards, you will see the following additional file structure:
 
 ```
 ./
